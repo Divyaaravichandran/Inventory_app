@@ -3,6 +3,7 @@ import Layout from '../components/Layout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { FiBox, FiPlus } from 'react-icons/fi';
+import { API_BASE_URL } from '../config/api';
 
 const RiceStock = () => {
   const [riceStock, setRiceStock] = useState([]);
@@ -29,7 +30,7 @@ const RiceStock = () => {
 
   const fetchRiceStock = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/rice');
+      const response = await axios.get(`${API_BASE_URL}/api/rice`);
       setRiceStock(response.data);
     } catch (error) {
       toast.error('Failed to load rice stock');
@@ -40,7 +41,7 @@ const RiceStock = () => {
 
   const fetchGodowns = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/godown');
+      const response = await axios.get(`${API_BASE_URL}/api/godown`);
       setGodowns(response.data);
     } catch (error) {
       console.error('Failed to load godowns');
@@ -68,7 +69,7 @@ const RiceStock = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5000/api/rice', {
+      await axios.post(`${API_BASE_URL}/api/rice`, {
         ...formData,
         quantity: parseFloat(formData.quantity),
         bagsStock: {

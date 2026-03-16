@@ -3,6 +3,7 @@ import DealerLayout from '../components/DealerLayout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { FiPlus, FiTrash2 } from 'react-icons/fi';
+import { API_BASE_URL } from '../config/api';
 
 const DealerOrders = () => {
   const [orderItems, setOrderItems] = useState([
@@ -23,7 +24,7 @@ const DealerOrders = () => {
 
   const fetchOrders = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/dealer-orders/dealer');
+      const res = await axios.get(`${API_BASE_URL}/api/dealer-orders/dealer`);
       setOrders(res.data);
     } catch (error) {
       toast.error('Failed to load orders');
@@ -89,7 +90,7 @@ const DealerOrders = () => {
     try {
       // Submit each item as a separate order (or combine into one order if backend supports it)
       const orderPromises = orderItems.map((item) =>
-        axios.post('http://localhost:5000/api/dealer-orders/dealer', {
+        axios.post(`${API_BASE_URL}/api/dealer-orders/dealer`, {
           riceType: item.riceType,
           brand: item.brand,
           bagSize: item.bagSize,

@@ -3,6 +3,7 @@ import Layout from '../components/Layout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { FiPlus, FiMapPin, FiPackage, FiX } from 'react-icons/fi';
+import { API_BASE_URL } from '../config/api';
 
 const GodownManagement = () => {
   const [godowns, setGodowns] = useState([]);
@@ -24,7 +25,7 @@ const GodownManagement = () => {
 
   const fetchGodowns = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/godown');
+      const response = await axios.get(`${API_BASE_URL}/api/godown`);
       setGodowns(response.data);
     } catch (error) {
       toast.error('Failed to load godowns');
@@ -43,7 +44,7 @@ const GodownManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5000/api/godown', {
+      await axios.post(`${API_BASE_URL}/api/godown`, {
         ...formData,
         capacity: parseFloat(formData.capacity),
       });
@@ -72,7 +73,7 @@ const GodownManagement = () => {
     setDetailsLoading(true);
     setGodownDetails(null);
     try {
-      const res = await axios.get(`http://localhost:5000/api/godown/${godown._id}/details`);
+      const res = await axios.get(`${API_BASE_URL}/api/godown/${godown._id}/details`);
       setGodownDetails(res.data);
     } catch (error) {
       toast.error('Failed to load godown details');

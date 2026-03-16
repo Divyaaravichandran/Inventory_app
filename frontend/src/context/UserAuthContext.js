@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { API_BASE_URL } from '../config/api';
 
 const UserAuthContext = createContext();
 
@@ -28,7 +29,7 @@ export const UserAuthProvider = ({ children }) => {
 
   const fetchUser = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/user-auth/me');
+      const res = await axios.get(`${API_BASE_URL}/api/user-auth/me`);
       setUser(res.data.user);
     } catch (error) {
       localStorage.removeItem('userToken');
@@ -41,7 +42,7 @@ export const UserAuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const res = await axios.post('http://localhost:5000/api/user-auth/login', {
+      const res = await axios.post(`${API_BASE_URL}/api/user-auth/login`, {
         email,
         password,
       });
@@ -61,7 +62,7 @@ export const UserAuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const res = await axios.post('http://localhost:5000/api/user-auth/register', userData);
+      const res = await axios.post(`${API_BASE_URL}/api/user-auth/register`, userData);
       const { token: jwt, user: newUser } = res.data;
       localStorage.setItem('userToken', jwt);
       setToken(jwt);
@@ -86,7 +87,7 @@ export const UserAuthProvider = ({ children }) => {
 
   const updateProfile = async (profileData) => {
     try {
-      const res = await axios.put('http://localhost:5000/api/user-auth/profile', profileData);
+      const res = await axios.put(`${API_BASE_URL}/api/user-auth/profile`, profileData);
       setUser(res.data.user);
       toast.success('Profile updated successfully');
       return { success: true };

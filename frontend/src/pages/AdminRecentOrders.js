@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { API_BASE_URL } from '../config/api';
 
 const AdminRecentOrders = () => {
   const [dealerOrders, setDealerOrders] = useState([]);
@@ -16,7 +17,7 @@ const AdminRecentOrders = () => {
 
   const fetchDealerOrders = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/dealer-orders');
+      const res = await axios.get(`${API_BASE_URL}/api/dealer-orders`);
       setDealerOrders(res.data || []);
     } catch (error) {
       toast.error('Failed to load dealer orders');
@@ -27,7 +28,7 @@ const AdminRecentOrders = () => {
 
   const fetchUserOrders = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/user/admin/orders');
+      const res = await axios.get(`${API_BASE_URL}/api/user/admin/orders`);
       setUserOrders(res.data || []);
     } catch (error) {
       toast.error('Failed to load online orders');
@@ -36,7 +37,7 @@ const AdminRecentOrders = () => {
 
   const handleApprove = async (orderId) => {
     try {
-      await axios.post(`http://localhost:5000/api/dealer-orders/${orderId}/approve`);
+      await axios.post(`${API_BASE_URL}/api/dealer-orders/${orderId}/approve`);
       toast.success('Order approved and inventory updated');
       fetchDealerOrders();
     } catch (error) {
@@ -48,7 +49,7 @@ const AdminRecentOrders = () => {
 
   const handleReject = async (orderId) => {
     try {
-      await axios.post(`http://localhost:5000/api/dealer-orders/${orderId}/status`, {
+      await axios.post(`${API_BASE_URL}/api/dealer-orders/${orderId}/status`, {
         status: 'rejected',
       });
       toast.success('Order rejected');
@@ -62,7 +63,7 @@ const AdminRecentOrders = () => {
 
   const updateUserOrderStatus = async (orderId, status) => {
     try {
-      await axios.put(`http://localhost:5000/api/user/admin/orders/${orderId}/status`, { status });
+      await axios.put(`${API_BASE_URL}/api/user/admin/orders/${orderId}/status`, { status });
       toast.success(`Order status updated to ${status}`);
       fetchUserOrders();
     } catch (error) {
@@ -73,7 +74,7 @@ const AdminRecentOrders = () => {
 
   const updateUserPaymentStatus = async (orderId, paymentStatus) => {
     try {
-      await axios.put(`http://localhost:5000/api/user/admin/orders/${orderId}/payment`, { paymentStatus });
+      await axios.put(`${API_BASE_URL}/api/user/admin/orders/${orderId}/payment`, { paymentStatus });
       toast.success(`Payment status updated to ${paymentStatus}`);
       fetchUserOrders();
     } catch (error) {

@@ -3,6 +3,7 @@ import Layout from '../components/Layout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { FiPlus, FiCheck } from 'react-icons/fi';
+import { API_BASE_URL } from '../config/api';
 
 const PaddyInward = () => {
   const [formErrors, setFormErrors] = useState({});
@@ -29,7 +30,7 @@ const PaddyInward = () => {
 
   const fetchGodowns = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/godown');
+      const response = await axios.get(`${API_BASE_URL}/api/godown`);
       setGodowns(response.data);
     } catch (error) {
       toast.error('Failed to load godowns');
@@ -81,7 +82,7 @@ const PaddyInward = () => {
     setLoading(true);
 
     try {
-      await axios.post('http://localhost:5000/api/paddy', {
+      await axios.post(`${API_BASE_URL}/api/paddy`, {
         ...formData,
         quantity: parseFloat(formData.quantity),
         weight: parseFloat(formData.weight),

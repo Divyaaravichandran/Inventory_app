@@ -11,6 +11,7 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
+import { API_BASE_URL } from '../config/api';
 
 const Payments = () => {
   const [summary, setSummary] = useState(null);
@@ -47,7 +48,7 @@ const Payments = () => {
 
   const fetchRecentPayments = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/payments');
+      const response = await axios.get(`${API_BASE_URL}/api/payments`);
       // Sort by paymentDate descending (most recent first)
       const sorted = (response.data || []).sort((a, b) => {
         const dateA = new Date(a.paymentDate || a.createdAt);
@@ -62,7 +63,7 @@ const Payments = () => {
 
   const fetchSummary = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/payments/summary');
+      const response = await axios.get(`${API_BASE_URL}/api/payments/summary`);
       setSummary(response.data);
     } catch (error) {
       toast.error('Failed to load payment summary');
@@ -71,7 +72,7 @@ const Payments = () => {
 
   const fetchLedger = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/payments/ledger');
+      const response = await axios.get(`${API_BASE_URL}/api/payments/ledger`);
       setLedger(response.data);
     } catch (error) {
       toast.error('Failed to load ledger');
@@ -94,7 +95,7 @@ const Payments = () => {
     }
     setDealerPaymentLoading(true);
     try {
-      await axios.post('http://localhost:5000/api/payments', {
+      await axios.post(`${API_BASE_URL}/api/payments`, {
         invoiceId: invoice._id,
         customerName: invoice.dealer?.dealerName || invoice.dealerId,
         amount,
@@ -123,7 +124,7 @@ const Payments = () => {
 
   const fetchSales = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/sales');
+      const response = await axios.get(`${API_BASE_URL}/api/sales`);
       setSales(response.data.filter((s) => s.paymentStatus !== 'paid'));
     } catch (error) {
       console.error('Failed to load sales');
@@ -132,7 +133,7 @@ const Payments = () => {
 
   const fetchInvoices = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/invoices');
+      const response = await axios.get(`${API_BASE_URL}/api/invoices`);
       setInvoices(response.data || []);
     } catch (error) {
       console.error('Failed to load invoices');
@@ -148,7 +149,7 @@ const Payments = () => {
     }
 
     try {
-      await axios.post('http://localhost:5000/api/payments', {
+      await axios.post(`${API_BASE_URL}/api/payments`, {
         saleId: currentSale._id,
         customerName: currentSale.customerName,
         amount: parseFloat(paymentData.amount),

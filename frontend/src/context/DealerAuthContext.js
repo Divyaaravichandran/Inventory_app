@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { API_BASE_URL } from '../config/api';
 
 const DealerAuthContext = createContext(null);
 
@@ -28,7 +29,7 @@ export const DealerAuthProvider = ({ children }) => {
 
   const fetchDealer = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/dealer-auth/me');
+      const res = await axios.get(`${API_BASE_URL}/api/dealer-auth/me`);
       setDealerUser(res.data.user);
     } catch (error) {
       localStorage.removeItem('dealerToken');
@@ -41,7 +42,7 @@ export const DealerAuthProvider = ({ children }) => {
 
   const login = async (dealerId, password) => {
     try {
-      const res = await axios.post('http://localhost:5000/api/dealer-auth/login', {
+      const res = await axios.post(`${API_BASE_URL}/api/dealer-auth/login`, {
         dealerId,
         password,
       });
@@ -61,7 +62,7 @@ export const DealerAuthProvider = ({ children }) => {
 
   const register = async (dealerId, password) => {
     try {
-      const res = await axios.post('http://localhost:5000/api/dealer-auth/register', {
+      const res = await axios.post(`${API_BASE_URL}/api/dealer-auth/register`, {
         dealerId,
         password,
       });

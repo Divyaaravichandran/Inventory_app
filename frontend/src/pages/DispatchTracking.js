@@ -3,6 +3,7 @@ import Layout from '../components/Layout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { FiTruck, FiMapPin, FiUser, FiCalendar, FiCheckCircle, FiClock, FiXCircle } from 'react-icons/fi';
+import { API_BASE_URL } from '../config/api';
 
 const DispatchTracking = () => {
   const [sales, setSales] = useState([]);
@@ -15,7 +16,7 @@ const DispatchTracking = () => {
 
   const fetchSales = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/sales');
+      const response = await axios.get(`${API_BASE_URL}/api/sales`);
       setSales(response.data);
     } catch (error) {
       toast.error('Failed to load dispatch data');
@@ -26,7 +27,7 @@ const DispatchTracking = () => {
 
   const updateStatus = async (saleId, newStatus) => {
     try {
-      await axios.put(`http://localhost:5000/api/sales/${saleId}`, { status: newStatus });
+      await axios.put(`${API_BASE_URL}/api/sales/${saleId}`, { status: newStatus });
       toast.success('Status updated successfully');
       fetchSales();
     } catch (error) {

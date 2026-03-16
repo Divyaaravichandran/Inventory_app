@@ -5,6 +5,7 @@ import { useUserAuth } from '../context/UserAuthContext';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { FiShoppingCart, FiMapPin, FiPhone, FiCreditCard, FiTruck } from 'react-icons/fi';
+import { API_BASE_URL } from '../config/api';
 
 const UserCheckout = () => {
   const { user } = useUserAuth();
@@ -65,7 +66,7 @@ const UserCheckout = () => {
         notes: formData.notes
       };
 
-      const response = await axios.post('http://localhost:5000/api/user/order', orderData);
+      const response = await axios.post(`${API_BASE_URL}/api/user/order`, orderData);
       
       // Clear cart
       localStorage.removeItem('userCart');

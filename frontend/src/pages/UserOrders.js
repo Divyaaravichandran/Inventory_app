@@ -3,6 +3,7 @@ import UserLayout from '../components/UserLayout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { FiPackage, FiClock, FiCheckCircle, FiTruck, FiXCircle, FiEye } from 'react-icons/fi';
+import { API_BASE_URL } from '../config/api';
 
 const UserOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -16,7 +17,7 @@ const UserOrders = () => {
 
   const fetchOrders = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/user/orders');
+      const response = await axios.get(`${API_BASE_URL}/api/user/orders`);
       setOrders(response.data);
     } catch (error) {
       toast.error('Failed to fetch orders');
@@ -65,7 +66,7 @@ const UserOrders = () => {
     }
 
     try {
-      await axios.put(`http://localhost:5000/api/user/orders/${orderId}/cancel`);
+      await axios.put(`${API_BASE_URL}/api/user/orders/${orderId}/cancel`);
       toast.success('Order cancelled successfully');
       fetchOrders();
     } catch (error) {

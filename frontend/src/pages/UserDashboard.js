@@ -15,6 +15,7 @@ import {
   FiDollarSign,
   FiActivity,
 } from 'react-icons/fi';
+import { API_BASE_URL } from '../config/api';
 
 const UserDashboard = () => {
   const { token } = useUserAuth();
@@ -39,7 +40,7 @@ const UserDashboard = () => {
   const fetchDashboardData = async () => {
     if (!token) return;
     try {
-      const ordersRes = await axios.get('http://localhost:5000/api/user/orders', {
+      const ordersRes = await axios.get(`${API_BASE_URL}/api/user/orders`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

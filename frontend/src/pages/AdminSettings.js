@@ -4,6 +4,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { FiUser, FiMail, FiSave, FiShield } from 'react-icons/fi';
+import { API_BASE_URL } from '../config/api';
 
 const AdminSettings = () => {
   const { user } = useAuth();
@@ -34,7 +35,7 @@ const AdminSettings = () => {
     setLoading(true);
 
     try {
-      await axios.put('http://localhost:5000/api/admin/profile', formData);
+      await axios.put(`${API_BASE_URL}/api/admin/profile`, formData);
       toast.success('Profile updated successfully!');
     } catch (error) {
       const message = error.response?.data?.message || 'Failed to update profile';

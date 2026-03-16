@@ -4,6 +4,7 @@ import UserLayout from '../components/UserLayout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { FiSearch, FiFilter, FiShoppingCart, FiPackage, FiGrid, FiList, FiBox } from 'react-icons/fi';
+import { API_BASE_URL } from '../config/api';
 
 const UserProducts = () => {
   const [products, setProducts] = useState([]);
@@ -17,7 +18,7 @@ const UserProducts = () => {
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/user/products');
+      const res = await axios.get(`${API_BASE_URL}/api/user/products`);
       setProducts(res.data || []);
     } catch (error) {
       toast.error('Failed to load products');

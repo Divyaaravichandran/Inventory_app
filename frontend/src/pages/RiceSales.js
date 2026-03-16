@@ -3,6 +3,7 @@ import Layout from '../components/Layout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { FiShoppingCart, FiDollarSign } from 'react-icons/fi';
+import { API_BASE_URL } from '../config/api';
 
 const RiceSales = () => {
   const BAG_SIZES = ['5kg', '10kg', '25kg', '75kg'];
@@ -52,7 +53,7 @@ const RiceSales = () => {
 
   const fetchSales = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/sales');
+      const response = await axios.get(`${API_BASE_URL}/api/sales`);
       setSales(response.data);
     } catch (error) {
       toast.error('Failed to load sales');
@@ -62,8 +63,8 @@ const RiceSales = () => {
   const fetchDealersAndOrders = async () => {
     try {
       const [dealersRes, ordersRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/dealers'),
-        axios.get('http://localhost:5000/api/dealer-orders'),
+        axios.get(`${API_BASE_URL}/api/dealers`),
+        axios.get(`${API_BASE_URL}/api/dealer-orders`),
       ]);
       setDealers(dealersRes.data || []);
       setDealerOrders(ordersRes.data || []);
@@ -74,7 +75,7 @@ const RiceSales = () => {
 
   const fetchRiceStock = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/rice');
+      const response = await axios.get(`${API_BASE_URL}/api/rice`);
       // Filter only rice items with stock > 0
       const availableRice = (response.data || []).filter(
         (rice) => rice.quantity > 0 && rice.status !== 'sold'
@@ -202,7 +203,7 @@ const RiceSales = () => {
     }
 
     try {
-      await axios.post('http://localhost:5000/api/sales', {
+      await axios.post(`${API_BASE_URL}/api/sales`, {
         ...formData,
         customerContact: formData.customerContact.replace(/\D/g, ''), // Store only digits
         quantity,
@@ -251,7 +252,7 @@ const RiceSales = () => {
     }
     setInvoiceLoading(true);
     try {
-      await axios.post('http://localhost:5000/api/invoices', {
+      await axios.post(`${API_BASE_URL}/api/invoices`, {
         dealerId: selectedDealerId,
         orderId: selectedOrderId,
         amount: parseFloat(invoiceAmount),

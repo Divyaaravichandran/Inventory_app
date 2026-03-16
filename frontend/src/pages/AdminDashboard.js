@@ -27,6 +27,7 @@ import {
   Pie,
   Cell,
 } from 'recharts';
+import { API_BASE_URL } from '../config/api';
 
 const AdminDashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
@@ -51,7 +52,7 @@ const AdminDashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/reports/dashboard');
+      const response = await axios.get(`${API_BASE_URL}/api/reports/dashboard`);
       setDashboardData(response.data);
     } catch (error) {
       toast.error('Failed to load dashboard data');
@@ -62,7 +63,7 @@ const AdminDashboard = () => {
 
   const fetchChartData = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/reports/charts?period=${period}`);
+      const response = await axios.get(`${API_BASE_URL}/api/reports/charts?period=${period}`);
       setChartData(response.data);
     } catch (error) {
       console.error('Failed to load chart data:', error);
@@ -71,7 +72,7 @@ const AdminDashboard = () => {
 
   const fetchAlerts = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/admin/alerts');
+      const response = await axios.get(`${API_BASE_URL}/api/admin/alerts`);
       setAlerts(response.data.alerts);
     } catch (error) {
       console.error('Failed to load alerts:', error);
@@ -80,7 +81,7 @@ const AdminDashboard = () => {
 
   const fetchPaddyStock = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/paddy/stock');
+      const response = await axios.get(`${API_BASE_URL}/api/paddy/stock`);
       setPaddyStock(response.data.byType || []);
     } catch (error) {
       console.error('Failed to load paddy stock:', error);
@@ -89,7 +90,7 @@ const AdminDashboard = () => {
 
   const fetchRecentSales = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/sales/recent?limit=5');
+      const response = await axios.get(`${API_BASE_URL}/api/sales/recent?limit=5`);
       setRecentSales(response.data);
     } catch (error) {
       console.error('Failed to load recent sales:', error);
@@ -98,7 +99,7 @@ const AdminDashboard = () => {
 
   const fetchDealerSummary = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/dealers');
+      const res = await axios.get(`${API_BASE_URL}/api/dealers`);
       const all = res.data || [];
       const active = all.filter((d) => d.status === 'active').length;
       setDealerSummary({ count: all.length, active });
@@ -110,8 +111,8 @@ const AdminDashboard = () => {
   const fetchOrdersSummary = async () => {
     try {
       const [salesRes, dealerRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/sales'),
-        axios.get('http://localhost:5000/api/dealer-orders'),
+        axios.get(`${API_BASE_URL}/api/sales`),
+        axios.get(`${API_BASE_URL}/api/dealer-orders`),
       ]);
       setOrdersSummary({
         sales: (salesRes.data || []).length,

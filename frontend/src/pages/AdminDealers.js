@@ -3,6 +3,7 @@ import Layout from '../components/Layout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { FiPlus, FiEdit2, FiToggleLeft, FiUser } from 'react-icons/fi';
+import { API_BASE_URL } from '../config/api';
 
 const AdminDealers = () => {
   const [dealers, setDealers] = useState([]);
@@ -26,7 +27,7 @@ const AdminDealers = () => {
 
   const fetchDealers = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/dealers');
+      const res = await axios.get(`${API_BASE_URL}/api/dealers`);
       setDealers(res.data);
     } catch (error) {
       toast.error('Failed to load dealers');
@@ -38,7 +39,7 @@ const AdminDealers = () => {
   const fetchOverview = async (dealerId) => {
     try {
       const res = await axios.get(
-        `http://localhost:5000/api/dealers/${dealerId}/overview`
+        `${API_BASE_URL}/api/dealers/${dealerId}/overview`
       );
       setOverview(res.data);
     } catch (error) {
@@ -80,12 +81,12 @@ const AdminDealers = () => {
     try {
       if (selectedDealer) {
         await axios.put(
-          `http://localhost:5000/api/dealers/${selectedDealer._id}`,
+          `${API_BASE_URL}/api/dealers/${selectedDealer._id}`,
           formData
         );
         toast.success('Dealer updated successfully');
       } else {
-        await axios.post('http://localhost:5000/api/dealers', formData);
+        await axios.post(`${API_BASE_URL}/api/dealers`, formData);
         toast.success('Dealer added successfully');
       }
       setShowForm(false);
@@ -126,7 +127,7 @@ const AdminDealers = () => {
   const handleDisable = async (dealer) => {
     try {
       await axios.patch(
-        `http://localhost:5000/api/dealers/${dealer._id}/disable`
+        `${API_BASE_URL}/api/dealers/${dealer._id}/disable`
       );
       toast.success('Dealer disabled');
       fetchDealers();
