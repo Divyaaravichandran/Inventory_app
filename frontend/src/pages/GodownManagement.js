@@ -2,8 +2,13 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+<<<<<<< HEAD
 import { FiPlus, FiMapPin, FiPackage, FiX } from 'react-icons/fi';
 import { API_BASE_URL } from '../config/api';
+=======
+import { FiPlus, FiMapPin, FiPackage, FiTrash2, FiX, FiEdit2 } from 'react-icons/fi';
+
+>>>>>>> ebaf816 (Modified some pages)
 
 const GodownManagement = () => {
   const [godowns, setGodowns] = useState([]);
@@ -12,6 +17,8 @@ const GodownManagement = () => {
   const [selectedGodown, setSelectedGodown] = useState(null);
   const [godownDetails, setGodownDetails] = useState(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     location: '',
@@ -44,16 +51,34 @@ const GodownManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+<<<<<<< HEAD
       await axios.post(`${API_BASE_URL}/api/godown`, {
         ...formData,
         capacity: parseFloat(formData.capacity),
       });
       toast.success('Godown added successfully!');
+=======
+      if (isEditing) {
+        await axios.put(`http://localhost:5000/api/godown/${editingId}`, {
+          ...formData,
+          capacity: parseFloat(formData.capacity),
+        });
+        toast.success('Godown updated successfully!');
+      } else {
+        await axios.post('http://localhost:5000/api/godown', {
+          ...formData,
+          capacity: parseFloat(formData.capacity),
+        });
+        toast.success('Godown added successfully!');
+      }
+>>>>>>> ebaf816 (Modified some pages)
       setShowForm(false);
+      setIsEditing(false);
+      setEditingId(null);
       setFormData({ name: '', location: '', capacity: '', stockType: 'mixed' });
       fetchGodowns();
     } catch (error) {
-      const message = error.response?.data?.message || 'Failed to add godown';
+      const message = error.response?.data?.message || `Failed to ${isEditing ? 'update' : 'add'} godown`;
       toast.error(message);
     }
   };
@@ -68,6 +93,19 @@ const GodownManagement = () => {
     return 'bg-green-500';
   };
 
+  const handleEdit = (godown, e) => {
+    e.stopPropagation();
+    setIsEditing(true);
+    setEditingId(godown._id);
+    setFormData({
+      name: godown.name,
+      location: godown.location,
+      capacity: godown.capacity,
+      stockType: godown.stockType,
+    });
+    setShowForm(true);
+  };
+
   const handleGodownClick = async (godown) => {
     setSelectedGodown(godown);
     setDetailsLoading(true);
@@ -79,6 +117,49 @@ const GodownManagement = () => {
       toast.error('Failed to load godown details');
     } finally {
       setDetailsLoading(false);
+    }
+  };
+
+  const handleDeleteGodown = async (godown, e) => {
+    e.stopPropagation();
+    try {
+      await axios.delete(`http://localhost:5000/api/godown/${godown._id}`);
+      toast.success('Godown deleted');
+      if (selectedGodown?._id === godown._id) {
+        closeGodownDetails();
+      }
+      fetchGodowns();
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to delete godown';
+      toast.error(message);
+    }
+  };
+
+  const handleDeletePaddy = async (paddyId) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/paddy/${paddyId}`);
+      toast.success('Paddy stock deleted');
+      if (selectedGodown) {
+        handleGodownClick(selectedGodown);
+        fetchGodowns();
+      }
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to delete paddy stock';
+      toast.error(message);
+    }
+  };
+
+  const handleDeleteRice = async (riceId) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/rice/${riceId}`);
+      toast.success('Rice stock deleted');
+      if (selectedGodown) {
+        handleGodownClick(selectedGodown);
+        fetchGodowns();
+      }
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to delete rice stock';
+      toast.error(message);
     }
   };
 
@@ -102,7 +183,14 @@ const GodownManagement = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-gray-800">Godown Management</h1>
-          <button onClick={() => setShowForm(!showForm)} className="btn-primary flex items-center space-x-2">
+          <button onClick={() => {
+            setShowForm(!showForm);
+            if (!showForm && isEditing) {
+              setIsEditing(false);
+              setEditingId(null);
+              setFormData({ name: '', location: '', capacity: '', stockType: 'mixed' });
+            }
+          }} className="btn-primary flex items-center space-x-2">
             <FiPlus />
             <span>Add Godown</span>
           </button>
@@ -110,7 +198,7 @@ const GodownManagement = () => {
 
         {showForm && (
           <div className="card mb-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Add New Godown</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">{isEditing ? 'Edit Godown' : 'Add New Godown'}</h2>
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="label">Godown Name *</label>
@@ -162,11 +250,16 @@ const GodownManagement = () => {
               </div>
               <div className="md:col-span-2 flex space-x-4">
                 <button type="submit" className="btn-primary">
-                  Add Godown
+                  {isEditing ? 'Update Godown' : 'Add Godown'}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setShowForm(false)}
+                  onClick={() => {
+                    setShowForm(false);
+                    setIsEditing(false);
+                    setEditingId(null);
+                    setFormData({ name: '', location: '', capacity: '', stockType: 'mixed' });
+                  }}
                   className="btn-secondary"
                 >
                   Cancel
@@ -197,8 +290,26 @@ const GodownManagement = () => {
                       {godown.location}
                     </div>
                   </div>
-                  <div className="px-3 py-1 bg-primary-100 text-primary-700 rounded-lg text-xs font-semibold capitalize">
-                    {godown.stockType}
+                  <div className="flex items-center space-x-2">
+                    <div className="px-3 py-1 bg-primary-100 text-primary-700 rounded-lg text-xs font-semibold capitalize">
+                      {godown.stockType}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => handleEdit(godown, e)}
+                      className="p-2 rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200"
+                      title="Edit godown"
+                    >
+                      <FiEdit2 size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => handleDeleteGodown(godown, e)}
+                      className="p-2 rounded-lg bg-red-100 text-red-700 hover:bg-red-200"
+                      title="Delete godown"
+                    >
+                      <FiTrash2 size={14} />
+                    </button>
                   </div>
                 </div>
 
@@ -268,9 +379,18 @@ const GodownManagement = () => {
                           {godownDetails.paddyStock.map((p) => (
                             <div key={p._id} className="p-3 bg-amber-50 rounded-lg flex justify-between items-center">
                               <span className="font-medium text-gray-800">{p.paddyType}</span>
-                              <span className="text-sm text-gray-600">
-                                {p.quantity?.toLocaleString()} qty | {p.weight?.toLocaleString()} tons | {p.qualityGrade}
-                              </span>
+                              <div className="flex items-center space-x-3">
+                                <span className="text-sm text-gray-600">
+                                  {p.quantity?.toLocaleString()} qty | {p.weight?.toLocaleString()} tons | {p.qualityGrade}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeletePaddy(p._id)}
+                                  className="text-xs font-semibold text-red-600 hover:text-red-700"
+                                >
+                                  Delete
+                                </button>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -285,9 +405,18 @@ const GodownManagement = () => {
                           {godownDetails.riceStock.map((r) => (
                             <div key={r._id} className="p-3 bg-green-50 rounded-lg flex justify-between items-center">
                               <span className="font-medium text-gray-800">{r.riceType} - {r.riceName}</span>
-                              <span className="text-sm text-gray-600">
-                                {r.quantity?.toLocaleString()} kg | 5kg:{r.bagsStock?.['5kg'] || 0} | 10kg:{r.bagsStock?.['10kg'] || 0} | 25kg:{r.bagsStock?.['25kg'] || 0} | 75kg:{r.bagsStock?.['75kg'] || 0}
-                              </span>
+                              <div className="flex items-center space-x-3">
+                                <span className="text-sm text-gray-600">
+                                  {r.quantity?.toLocaleString()} kg | 5kg:{r.bagsStock?.['5kg'] || 0} | 10kg:{r.bagsStock?.['10kg'] || 0} | 25kg:{r.bagsStock?.['25kg'] || 0} | 75kg:{r.bagsStock?.['75kg'] || 0}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteRice(r._id)}
+                                  className="text-xs font-semibold text-red-600 hover:text-red-700"
+                                >
+                                  Delete
+                                </button>
+                              </div>
                             </div>
                           ))}
                         </div>

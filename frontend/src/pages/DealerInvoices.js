@@ -5,10 +5,13 @@ import { API_BASE_URL } from '../config/api';
 
 const DealerInvoices = () => {
   const [invoices, setInvoices] = useState([]);
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     fetchInvoices();
   }, []);
+
+  const invoicesToShow = showAll ? invoices : invoices.slice(0, 5);
 
   const fetchInvoices = async () => {
     try {
@@ -17,6 +20,90 @@ const DealerInvoices = () => {
     } catch (error) {
       // handled silently
     }
+  };
+
+  const handleDownloadPdf = (invoice) => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const invoiceDate = new Date(invoice.createdAt).toLocaleDateString();
+    const orderId = invoice.order ? invoice.order._id : '-';
+    const order = invoice.order || {};
+    const remaining = Math.max(0, (invoice.amount || 0) - (invoice.paidAmount || 0));
+    const html = `
+      <html>
+        <head>
+          <title>Invoice ${invoice.invoiceNumber}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 24px; color: #111827; }
+            h1 { font-size: 20px; margin-bottom: 8px; }
+            h2 { font-size: 14px; margin: 0 0 16px; color: #374151; }
+            .meta { font-size: 14px; margin-bottom: 16px; color: #374151; }
+            table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+            th, td { border: 1px solid #e5e7eb; padding: 8px; text-align: left; font-size: 14px; }
+            th { background: #f9fafb; }
+          </style>
+        </head>
+        <body>
+          <h1>KONGU HI-TECH RICE INDUSTRY</h1>
+          <h2>Invoice ${invoice.invoiceNumber}</h2>
+          <div class="meta">Date: ${invoiceDate}</div>
+          <table>
+            <tr>
+              <th>Order</th>
+              <td>${orderId}</td>
+            </tr>
+            <tr>
+              <th>Amount</th>
+              <td>₹${(invoice.amount || 0).toLocaleString('en-IN')}</td>
+            </tr>
+            <tr>
+              <th>Paid</th>
+              <td>₹${(invoice.paidAmount || 0).toLocaleString('en-IN')}</td>
+            </tr>
+            <tr>
+              <th>Remaining</th>
+              <td>₹${remaining.toLocaleString('en-IN')}</td>
+            </tr>
+            <tr>
+              <th>Status</th>
+              <td>${invoice.paymentStatus}</td>
+            </tr>
+          </table>
+          <table>
+            <thead>
+              <tr>
+                <th>Rice Type</th>
+                <th>Brand</th>
+                <th>Bag Size</th>
+                <th>Bags</th>
+                <th>Qty (kg)</th>
+                <th>Rate/kg</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>${order.riceType || '-'}</td>
+                <td>${order.brand || '-'}</td>
+                <td>${order.bagSize || '-'}</td>
+                <td>${order.quantityBags || '-'}</td>
+                <td>${order.totalQuantityKg || '-'}</td>
+                <td>₹${(order.ratePerKg || 0).toLocaleString('en-IN')}</td>
+                <td>₹${(order.totalAmount || invoice.amount || 0).toLocaleString('en-IN')}</td>
+              </tr>
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.open();
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
   };
 
   return (
@@ -28,9 +115,18 @@ const DealerInvoices = () => {
         </p>
 
         <div className="card">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Invoice List
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-800">Invoice List</h2>
+            {invoices.length > 5 && (
+              <button
+                type="button"
+                onClick={() => setShowAll((v) => !v)}
+                className="text-sm font-semibold text-primary-600 hover:text-primary-700"
+              >
+                {showAll ? 'Show Less' : 'Show More'}
+              </button>
+            )}
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -50,11 +146,14 @@ const DealerInvoices = () => {
                   <th className="text-left py-2 text-sm font-semibold text-gray-700">
                     Date
                   </th>
+                  <th className="text-left py-2 text-sm font-semibold text-gray-700">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {invoices.length > 0 ? (
-                  invoices.map((inv) => (
+                  invoicesToShow.map((inv) => (
                     <tr key={inv._id} className="border-b">
                       <td className="py-2 text-sm text-gray-800">
                         {inv.invoiceNumber}
@@ -71,12 +170,21 @@ const DealerInvoices = () => {
                       <td className="py-2 text-sm text-gray-800">
                         {new Date(inv.createdAt).toLocaleDateString()}
                       </td>
+                      <td className="py-2 text-sm text-gray-800">
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadPdf(inv)}
+                          className="text-primary-600 hover:text-primary-700 font-semibold text-sm"
+                        >
+                          Download as PDF
+                        </button>
+                      </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
                     <td
-                      colSpan="5"
+                      colSpan="6"
                       className="py-4 text-center text-gray-500 text-sm"
                     >
                       No invoices available

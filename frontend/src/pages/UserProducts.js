@@ -39,6 +39,11 @@ const UserProducts = () => {
     setCart(newCart);
   };
 
+  const clearCart = () => {
+    localStorage.removeItem('userCart');
+    setCart([]);
+  };
+
   const filterAndSortProducts = useCallback(() => {
     let filtered = products;
 
@@ -108,6 +113,12 @@ const UserProducts = () => {
       return;
     }
 
+    const maxBags = product.bagsStock?.[bagSize] || 0;
+    if (maxBags > 0 && parseInt(quantity, 10) > maxBags) {
+      toast.error(`Only ${maxBags} bags available for ${bagSize}`);
+      return;
+    }
+
     const newCart = [...cart];
     const existingItem = newCart.find(item => 
       item.productId === product._id && item.bagSize === bagSize
@@ -117,7 +128,7 @@ const UserProducts = () => {
       existingItem.quantity += parseInt(quantity);
     } else {
       const productName = product.name || product.riceName || product.riceType || 'Product';
-      const pricePerKg = product.pricePerKg || product.ratePerKg || 0;
+      const pricePerKg = product.ratePerKg || product.pricePerKg || 0;
       newCart.push({
         productId: product._id,
         name: productName,
@@ -272,6 +283,12 @@ const UserProducts = () => {
                   className="bg-white text-green-700 font-semibold py-2 px-6 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
                 >
                   Checkout
+                </button>
+                <button
+                  onClick={clearCart}
+                  className="bg-white/20 text-white font-semibold py-2 px-6 rounded-lg border border-white/40 hover:bg-white/30 transition-all duration-200"
+                >
+                  Cancel
                 </button>
               </div>
             </div>

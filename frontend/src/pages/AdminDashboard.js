@@ -8,24 +8,17 @@ import {
   FiBox,
   FiLayers,
   FiAlertCircle,
-  FiDollarSign,
   FiUsers,
-  FiShoppingCart,
 } from 'react-icons/fi';
 import {
   BarChart,
   Bar,
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   Legend,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
 } from 'recharts';
 import { API_BASE_URL } from '../config/api';
 
@@ -39,6 +32,8 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [dealerSummary, setDealerSummary] = useState({ count: 0, active: 0 });
   const [ordersSummary, setOrdersSummary] = useState({ sales: 0, dealer: 0 });
+  const [showAllPaddyStock, setShowAllPaddyStock] = useState(false);
+  const [showAllRecentSales, setShowAllRecentSales] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -90,7 +85,7 @@ const AdminDashboard = () => {
 
   const fetchRecentSales = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/sales/recent?limit=5`);
+      const response = await axios.get('http://localhost:5000/api/sales/recent?limit=5');
       setRecentSales(response.data);
     } catch (error) {
       console.error('Failed to load recent sales:', error);
@@ -134,12 +129,7 @@ const AdminDashboard = () => {
   }
 
   const kpis = dashboardData?.kpis || {};
-  const payments = dashboardData?.payments || {};
-
-  const paymentData = [
-    { name: 'Paid', value: payments.totalReceived || 0, color: '#10b981' },
-    { name: 'Pending', value: payments.totalPending || 0, color: '#f59e0b' },
-  ];
+  const profitLoss = dashboardData?.profitLoss || {};
 
   const chartDataFormatted = chartData
     ? [
@@ -154,7 +144,7 @@ const AdminDashboard = () => {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="max-w-7xl mx-auto space-y-6">
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <KPICard
@@ -215,7 +205,40 @@ const AdminDashboard = () => {
           />
         </div>
 
+                {/* Profit/Loss Summary */}
+        <div className="card">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+            <h3 className="text-xl font-bold text-gray-800 flex items-center">
+              <FiTrendingUp className="mr-2 text-primary-600" />
+              Overall Profit / Loss
+            </h3>
+            
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-4 rounded-lg bg-gray-50">
+              <p className="text-sm text-gray-600">Total Sales Revenue</p>
+              <p className="text-2xl font-bold text-gray-800">
+                ₹{(profitLoss.totalSalesRevenue || 0).toLocaleString('en-IN')}
+              </p>
+            </div>
+            <div className="p-4 rounded-lg bg-gray-50">
+              <p className="text-sm text-gray-600">Total Purchase Cost</p>
+              <p className="text-2xl font-bold text-gray-800">
+                ₹{(profitLoss.totalPurchaseCost || 0).toLocaleString('en-IN')}
+              </p>
+            </div>
+            <div className="p-4 rounded-lg bg-gray-50">
+              <p className="text-sm text-gray-600">Net Profit / Loss</p>
+              <p className={`text-2xl font-bold ${(profitLoss.profitLoss || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                ₹{(profitLoss.profitLoss || 0).toLocaleString('en-IN')}
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Dealers Section */}
+
         <div className="card">
           <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
             <FiUsers className="mr-2 text-primary-600" />
@@ -274,7 +297,7 @@ const AdminDashboard = () => {
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold text-gray-800">Overview Reports</h3>
             <div className="flex space-x-2">
-              {['daily', 'weekly', 'monthly'].map((p) => (
+              {['daily', 'monthly'].map((p) => (
                 <button
                   key={p}
                   onClick={() => setPeriod(p)}
@@ -306,148 +329,89 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Payment Status */}
+        {/* Tables Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Paddy Stock Details */}
           <div className="card">
-            <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
-              <FiDollarSign className="mr-2 text-green-500" />
-              Payment Status
-            </h3>
-            <div className="flex items-center justify-center">
-              <div className="relative">
-                <ResponsiveContainer width={250} height={250}>
-                  <PieChart>
-                    <Pie
-                      data={paymentData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={100}
-                      dataKey="value"
-                    >
-                      {paymentData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-gray-800">
-                      {payments.paidPercent?.toFixed(1) || 0}%
-                    </p>
-                    <p className="text-sm text-gray-600">Paid</p>
-                  </div>
-                </div>
-              </div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-800">Paddy Stock Details</h3>
+              {paddyStock.length > 5 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllPaddyStock((v) => !v)}
+                  className="text-sm font-semibold text-primary-600 hover:text-primary-700"
+                >
+                  {showAllPaddyStock ? 'Show Less' : 'Show More'}
+                </button>
+              )}
             </div>
-            <div className="mt-6 space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
-                  <span className="text-sm text-gray-700">Paid</span>
-                </div>
-                <span className="font-semibold text-gray-800">
-                  ₹{payments.totalReceived?.toLocaleString() || 0}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="w-4 h-4 bg-amber-500 rounded-full mr-2"></div>
-                  <span className="text-sm text-gray-700">Pending</span>
-                </div>
-                <span className="font-semibold text-gray-800">
-                  ₹{payments.totalPending?.toLocaleString() || 0}
-                </span>
-              </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2 text-sm font-semibold text-gray-700">Paddy Type</th>
+                    <th className="text-right py-2 text-sm font-semibold text-gray-700">Quantity (tons)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(showAllPaddyStock ? paddyStock : paddyStock.slice(0, 5)).length > 0 ? (
+                    (showAllPaddyStock ? paddyStock : paddyStock.slice(0, 5)).map((item, idx) => (
+                      <tr key={idx} className="border-b">
+                        <td className="py-2 text-sm text-gray-800">{item._id}</td>
+                        <td className="py-2 text-sm text-gray-800 text-right">{item.totalWeight?.toFixed(2)}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="2" className="py-4 text-center text-gray-500">No paddy stock data</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
 
-          {/* Tables Section */}
-          <div className="space-y-6">
-            {/* Paddy Stock Details */}
-            <div className="card">
-              <h3 className="text-lg font-bold text-gray-800 mb-4">Paddy Stock Details</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left py-2 text-sm font-semibold text-gray-700">
-                        Paddy Type
-                      </th>
-                      <th className="text-right py-2 text-sm font-semibold text-gray-700">
-                        Quantity (tons)
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paddyStock.length > 0 ? (
-                      paddyStock.map((item, idx) => (
-                        <tr key={idx} className="border-b">
-                          <td className="py-2 text-sm text-gray-800">{item._id}</td>
-                          <td className="py-2 text-sm text-gray-800 text-right">
-                            {item.totalWeight?.toFixed(2)}
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="2" className="py-4 text-center text-gray-500">
-                          No paddy stock data
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+          {/* Recent Sales */}
+          <div className="card">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-800">Recent Sales</h3>
+              {recentSales.length > 5 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllRecentSales((v) => !v)}
+                  className="text-sm font-semibold text-primary-600 hover:text-primary-700"
+                >
+                  {showAllRecentSales ? 'Show Less' : 'Show More'}
+                </button>
+              )}
             </div>
-
-            {/* Recent Sales */}
-            <div className="card">
-              <h3 className="text-lg font-bold text-gray-800 mb-4">Recent Sales</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left py-2 text-sm font-semibold text-gray-700">
-                        Customer
-                      </th>
-                      <th className="text-left py-2 text-sm font-semibold text-gray-700">
-                        Rice Type
-                      </th>
-                      <th className="text-right py-2 text-sm font-semibold text-gray-700">
-                        Quantity
-                      </th>
-                      <th className="text-right py-2 text-sm font-semibold text-gray-700">
-                        Amount
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {recentSales.length > 0 ? (
-                      recentSales.map((sale, idx) => (
-                        <tr key={idx} className="border-b">
-                          <td className="py-2 text-sm text-gray-800">{sale.customerName}</td>
-                          <td className="py-2 text-sm text-gray-800">{sale.riceType}</td>
-                          <td className="py-2 text-sm text-gray-800 text-right">
-                            {sale.quantity} kg
-                          </td>
-                          <td className="py-2 text-sm text-gray-800 text-right">
-                            ₹{sale.totalAmount?.toLocaleString()}
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="4" className="py-4 text-center text-gray-500">
-                          No recent sales
-                        </td>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2 text-sm font-semibold text-gray-700">Customer</th>
+                    <th className="text-left py-2 text-sm font-semibold text-gray-700">Rice Type</th>
+                    <th className="text-right py-2 text-sm font-semibold text-gray-700">Quantity</th>
+                    <th className="text-right py-2 text-sm font-semibold text-gray-700">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(showAllRecentSales ? recentSales : recentSales.slice(0, 5)).length > 0 ? (
+                    (showAllRecentSales ? recentSales : recentSales.slice(0, 5)).map((sale, idx) => (
+                      <tr key={idx} className="border-b">
+                        <td className="py-2 text-sm text-gray-800">{sale.customerName}</td>
+                        <td className="py-2 text-sm text-gray-800">{sale.riceType}</td>
+                        <td className="py-2 text-sm text-gray-800 text-right">{sale.quantity} kg</td>
+                        <td className="py-2 text-sm text-gray-800 text-right">₹{sale.totalAmount?.toLocaleString()}</td>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="4" className="py-4 text-center text-gray-500">No recent sales</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>

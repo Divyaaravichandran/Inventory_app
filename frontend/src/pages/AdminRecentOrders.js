@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -9,6 +9,9 @@ const AdminRecentOrders = () => {
   const [userOrders, setUserOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dealer'); // 'dealer' or 'online'
+  const [showAllDealer, setShowAllDealer] = useState(false);
+  const [showAllOnline, setShowAllOnline] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     fetchDealerOrders();
@@ -61,6 +64,34 @@ const AdminRecentOrders = () => {
     }
   };
 
+  const handleDeleteDealerOrder = async (orderId) => {
+    setDeletingId(orderId);
+    try {
+      await axios.delete(`http://localhost:5000/api/dealer-orders/${orderId}`);
+      toast.success('Dealer order deleted');
+      fetchDealerOrders();
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to delete dealer order';
+      toast.error(message);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleDeleteUserOrder = async (orderId) => {
+    setDeletingId(orderId);
+    try {
+      await axios.delete(`http://localhost:5000/api/user/admin/orders/${orderId}`);
+      toast.success('Online order deleted');
+      fetchUserOrders();
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to delete online order';
+      toast.error(message);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const updateUserOrderStatus = async (orderId, status) => {
     try {
       await axios.put(`${API_BASE_URL}/api/user/admin/orders/${orderId}/status`, { status });
@@ -107,7 +138,10 @@ const AdminRecentOrders = () => {
     }
   };
 
-  const currentOrders = activeTab === 'dealer' ? dealerOrders : userOrders;
+  const currentOrders =
+    activeTab === 'dealer'
+      ? (showAllDealer ? dealerOrders : dealerOrders.slice(0, 10))
+      : (showAllOnline ? userOrders : userOrders.slice(0, 10));
 
   return (
     <Layout>
@@ -146,9 +180,29 @@ const AdminRecentOrders = () => {
           </div>
         ) : (
           <div className="card">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              {activeTab === 'dealer' ? 'Dealer Orders' : 'Online Orders'}
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-800">
+                {activeTab === 'dealer' ? 'Dealer Orders' : 'Online Orders'}
+              </h2>
+              {activeTab === 'dealer' && dealerOrders.length > 10 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllDealer((v) => !v)}
+                  className="text-sm font-semibold text-primary-600 hover:text-primary-700"
+                >
+                  {showAllDealer ? 'Show Less' : 'Show More'}
+                </button>
+              )}
+              {activeTab === 'online' && userOrders.length > 10 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllOnline((v) => !v)}
+                  className="text-sm font-semibold text-primary-600 hover:text-primary-700"
+                >
+                  {showAllOnline ? 'Show Less' : 'Show More'}
+                </button>
+              )}
+            </div>
             
             {currentOrders.length > 0 ? (
               <div className="overflow-x-auto">
@@ -209,7 +263,7 @@ const AdminRecentOrders = () => {
                           {activeTab === 'dealer' ? (
                             `${order.riceType} - ${order.brand}`
                           ) : (
-                            order.items?.map((i, idx) => `${i.riceType} - ${i.brand}`).join(', ') || `${order.items?.length || 0} items`
+                            order.items?.map((i) => `${i.riceType} - ${i.brand}`).join(', ') || `${order.items?.length || 0} items`
                           )}
                         </td>
                         <td className="py-2 text-sm text-gray-800">
@@ -242,7 +296,7 @@ const AdminRecentOrders = () => {
                         <td className="py-2 text-sm text-gray-800">
                           {activeTab === 'dealer' ? (
                             order.status === 'pending' ? (
-                              <div className="flex space-x-2">
+                              <div className="flex items-center gap-2 flex-nowrap">
                                 <button
                                   type="button"
                                   onClick={() => handleApprove(order._id)}
@@ -257,16 +311,38 @@ const AdminRecentOrders = () => {
                                 >
                                   Reject
                                 </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteDealerOrder(order._id)}
+                                  disabled={deletingId === order._id}
+                                  className="px-3 py-1 bg-gray-200 text-gray-700 rounded-lg text-xs font-semibold hover:bg-gray-300"
+                                >
+                                  {deletingId === order._id ? 'Deleting...' : 'Delete'}
+                                </button>
                               </div>
                             ) : (
-                              <span className="text-xs text-gray-500">—</span>
+                              <div className="flex items-center gap-2 flex-nowrap">
+                                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                  order.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                                }`}>
+                                  {order.status}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteDealerOrder(order._id)}
+                                  disabled={deletingId === order._id}
+                                  className="text-xs font-semibold text-red-600 hover:text-red-700"
+                                >
+                                  {deletingId === order._id ? 'Deleting...' : 'Delete'}
+                                </button>
+                              </div>
                             )
                           ) : (
-                            <div className="flex space-x-2">
+                            <div className="flex items-center gap-2 flex-nowrap">
                               <select
                                 value={order.status}
                                 onChange={(e) => updateUserOrderStatus(order._id, e.target.value)}
-                                className="px-2 py-1 text-xs border border-gray-300 rounded"
+                                className="px-2 py-1 text-xs border border-gray-300 rounded min-w-max"
                               >
                                 <option value="pending">Pending</option>
                                 <option value="confirmed">Confirmed</option>
@@ -278,13 +354,21 @@ const AdminRecentOrders = () => {
                               <select
                                 value={order.paymentStatus}
                                 onChange={(e) => updateUserPaymentStatus(order._id, e.target.value)}
-                                className="px-2 py-1 text-xs border border-gray-300 rounded"
+                                className="px-2 py-1 text-xs border border-gray-300 rounded min-w-max"
                               >
                                 <option value="pending">Pending</option>
                                 <option value="paid">Paid</option>
                                 <option value="partial">Partial</option>
                                 <option value="failed">Failed</option>
                               </select>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteUserOrder(order._id)}
+                                disabled={deletingId === order._id}
+                                className="px-2 py-1 text-xs font-semibold text-red-600 hover:text-red-700"
+                              >
+                                {deletingId === order._id ? 'Deleting...' : 'Delete'}
+                              </button>
                             </div>
                           )}
                         </td>

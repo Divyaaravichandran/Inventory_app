@@ -50,6 +50,19 @@ router.get('/dashboard', auth, adminOnly, async (req, res) => {
     const totalReceived = sales.reduce((sum, s) => sum + s.paidAmount, 0);
     const totalPending = totalReceivable - totalReceived;
 
+    // Profit/Loss summary (based on paddy purchase cost vs sales revenue)
+    const [paddyCostAgg, salesRevenueAgg] = await Promise.all([
+      Paddy.aggregate([{ $group: { _id: null, totalCost: { $sum: '$purchaseAmount' } } }]),
+      Sales.aggregate([
+        { $match: { paddyId: { $exists: true, $ne: null } } },
+        { $group: { _id: null, totalRevenue: { $sum: '$totalAmount' } } }
+      ])
+    ]);
+
+    const totalPurchaseCost = paddyCostAgg[0]?.totalCost || 0;
+    const totalSalesRevenue = salesRevenueAgg[0]?.totalRevenue || 0;
+    const profitLoss = totalSalesRevenue - totalPurchaseCost;
+
     res.json({
       kpis: {
         paddyStock: paddyStock[0]?.total || 0,
@@ -65,6 +78,11 @@ router.get('/dashboard', auth, adminOnly, async (req, res) => {
         totalReceived,
         totalPending,
         paidPercent: totalReceivable > 0 ? (totalReceived / totalReceivable) * 100 : 0
+      },
+      profitLoss: {
+        totalPurchaseCost,
+        totalSalesRevenue,
+        profitLoss
       }
     });
   } catch (error) {

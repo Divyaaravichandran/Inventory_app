@@ -1,6 +1,19 @@
 const mongoose = require('mongoose');
 
+const generatePaddyId = () => {
+  const datePart = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  const randPart = Math.random().toString(36).slice(2, 6).toUpperCase();
+  return `PAD-${datePart}-${randPart}`;
+};
+
 const paddySchema = new mongoose.Schema({
+  paddyId: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true,
+    trim: true
+  },
   paddyType: {
     type: String,
     required: true,
@@ -12,6 +25,16 @@ const paddySchema = new mongoose.Schema({
     min: 0
   },
   weight: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  purchaseRate: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  purchaseAmount: {
     type: Number,
     required: true,
     min: 0
@@ -63,6 +86,16 @@ const paddySchema = new mongoose.Schema({
   }
 }, {
   timestamps: true
+});
+
+paddySchema.pre('validate', function(next) {
+  if (!this.paddyId) {
+    this.paddyId = generatePaddyId();
+  }
+  const weightTons = Number(this.weight) || 0;
+  const ratePerKg = Number(this.purchaseRate) || 0;
+  this.purchaseAmount = weightTons * 1000 * ratePerKg;
+  next();
 });
 
 module.exports = mongoose.model('Paddy', paddySchema);

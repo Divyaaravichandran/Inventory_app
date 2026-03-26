@@ -33,7 +33,7 @@ const UserLayout = ({ children }) => {
     <div className="min-h-screen bg-gray-50">
       {/* Mobile Sidebar Toggle */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white shadow-md p-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-primary-700">Kongu</h1>
+        <h1 className="text-sm font-bold text-primary-700">Kongu Hi-Tech Rice Industries</h1>
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className="p-2 rounded-lg hover:bg-gray-100"
@@ -54,8 +54,7 @@ const UserLayout = ({ children }) => {
               <span className="text-primary-700 font-bold text-xl">K</span>
             </div>
             <div>
-              <h2 className="font-bold text-lg">Kongu</h2>
-              <p className="text-xs text-primary-200">Customer Portal</p>
+              <h2 className="font-bold text-sm leading-tight">Kongu Hi-Tech Rice Industries</h2>
             </div>
           </div>
 
@@ -126,10 +125,11 @@ const UserLayout = ({ children }) => {
               </div>
               <button
                 onClick={handleLogout}
-                className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-red-600 transition-colors"
+                className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-red-600 transition-colors"
                 title="Logout"
               >
                 <FiLogOut size={20} />
+                <span className="text-sm font-semibold">Logout</span>
               </button>
             </div>
           </div>

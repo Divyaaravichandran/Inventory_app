@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -37,6 +37,11 @@ const Payments = () => {
   const [dealerPaymentLoading, setDealerPaymentLoading] = useState(false);
   const [recentPayments, setRecentPayments] = useState([]);
   const [activeTab, setActiveTab] = useState('ledger'); // 'ledger', 'recent', or 'invoices'
+  const [ledgerFilter, setLedgerFilter] = useState('all');
+  const [showAllLedger, setShowAllLedger] = useState(false);
+  const [showAllRecent, setShowAllRecent] = useState(false);
+  const [showAllInvoices, setShowAllInvoices] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     fetchSummary();
@@ -78,6 +83,64 @@ const Payments = () => {
       toast.error('Failed to load ledger');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteLedger = async (entry) => {
+    setDeletingId(entry.saleId || entry.invoiceId || entry.userOrderId || entry.customer);
+    try {
+      if (entry.sourceType === 'sale' && entry.saleId) {
+        await axios.delete(`http://localhost:5000/api/sales/${entry.saleId}`);
+      } else if (entry.sourceType === 'invoice' && entry.invoiceId) {
+        await axios.delete(`http://localhost:5000/api/invoices/${entry.invoiceId}`);
+      } else if (entry.sourceType === 'userOrder' && entry.userOrderId) {
+        await axios.delete(`http://localhost:5000/api/user/admin/orders/${entry.userOrderId}`);
+      }
+      toast.success('Entry deleted');
+      fetchSummary();
+      fetchLedger();
+      fetchSales();
+      fetchInvoices();
+      fetchRecentPayments();
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to delete entry';
+      toast.error(message);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleDeletePayment = async (paymentId) => {
+    setDeletingId(paymentId);
+    try {
+      await axios.delete(`http://localhost:5000/api/payments/${paymentId}`);
+      toast.success('Payment deleted');
+      fetchSummary();
+      fetchLedger();
+      fetchInvoices();
+      fetchRecentPayments();
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to delete payment';
+      toast.error(message);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleDeleteInvoice = async (invoiceId) => {
+    setDeletingId(invoiceId);
+    try {
+      await axios.delete(`http://localhost:5000/api/invoices/${invoiceId}`);
+      toast.success('Invoice deleted');
+      fetchSummary();
+      fetchLedger();
+      fetchInvoices();
+      fetchRecentPayments();
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to delete invoice';
+      toast.error(message);
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -206,6 +269,15 @@ const Payments = () => {
       ]
     : [];
 
+  const filteredLedger = ledgerFilter === 'all'
+    ? ledger
+    : ledger.filter((entry) =>
+        ledgerFilter === 'paid' ? entry.status === 'paid' : entry.status !== 'paid'
+      );
+  const ledgerToShow = showAllLedger ? filteredLedger : filteredLedger.slice(0, 5);
+  const paymentsToShow = showAllRecent ? recentPayments : recentPayments.slice(0, 5);
+  const invoicesToShow = showAllInvoices ? invoices : invoices.slice(0, 5);
+
   if (loading) {
     return (
       <Layout>
@@ -223,7 +295,15 @@ const Payments = () => {
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="card bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('ledger');
+              setLedgerFilter('pending');
+              setShowAllLedger(true);
+            }}
+            className="card bg-gradient-to-br from-blue-500 to-blue-600 text-white text-left"
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-100 mb-1">Total Receivable</p>
@@ -233,8 +313,16 @@ const Payments = () => {
               </div>
               <FiDollarSign size={32} className="opacity-50" />
             </div>
-          </div>
-          <div className="card bg-gradient-to-br from-green-500 to-green-600 text-white">
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('ledger');
+              setLedgerFilter('paid');
+              setShowAllLedger(true);
+            }}
+            className="card bg-gradient-to-br from-green-500 to-green-600 text-white text-left"
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-green-100 mb-1">Received</p>
@@ -244,8 +332,16 @@ const Payments = () => {
               </div>
               <FiCheckCircle size={32} className="opacity-50" />
             </div>
-          </div>
-          <div className="card bg-gradient-to-br from-amber-500 to-amber-600 text-white">
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('ledger');
+              setLedgerFilter('pending');
+              setShowAllLedger(true);
+            }}
+            className="card bg-gradient-to-br from-amber-500 to-amber-600 text-white text-left"
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-amber-100 mb-1">Pending</p>
@@ -255,7 +351,7 @@ const Payments = () => {
               </div>
               <FiAlertCircle size={32} className="opacity-50" />
             </div>
-          </div>
+          </button>
         </div>
 
         {/* Payment Chart */}
@@ -352,6 +448,33 @@ const Payments = () => {
                 Recent Invoices
               </button>
             </div>
+            {activeTab === 'ledger' && filteredLedger.length > 5 && (
+              <button
+                type="button"
+                onClick={() => setShowAllLedger((v) => !v)}
+                className="text-sm font-semibold text-primary-600 hover:text-primary-700"
+              >
+                {showAllLedger ? 'Show Less' : 'Show More'}
+              </button>
+            )}
+            {activeTab === 'recent' && recentPayments.length > 5 && (
+              <button
+                type="button"
+                onClick={() => setShowAllRecent((v) => !v)}
+                className="text-sm font-semibold text-primary-600 hover:text-primary-700"
+              >
+                {showAllRecent ? 'Show Less' : 'Show More'}
+              </button>
+            )}
+            {activeTab === 'invoices' && invoices.length > 5 && (
+              <button
+                type="button"
+                onClick={() => setShowAllInvoices((v) => !v)}
+                className="text-sm font-semibold text-primary-600 hover:text-primary-700"
+              >
+                {showAllInvoices ? 'Show Less' : 'Show More'}
+              </button>
+            )}
             {activeTab === 'ledger' && (
               <button
                 onClick={() => {
@@ -503,8 +626,8 @@ const Payments = () => {
                 </tr>
               </thead>
               <tbody>
-                {ledger.length > 0 ? (
-                  ledger.map((entry, idx) => (
+                {ledgerToShow.length > 0 ? (
+                  ledgerToShow.map((entry, idx) => (
                     <tr key={idx} className="border-b hover:bg-gray-50">
                       <td className="py-4 px-4">
                         <div className="font-semibold text-gray-800">{entry.customer}</div>
@@ -534,32 +657,44 @@ const Payments = () => {
                         </div>
                       </td>
                       <td className="py-4 px-4">
-                        {entry.balance > 0 && (
-                          <button
-                            onClick={() => {
-                              if (entry.sourceType === 'invoice' && entry.invoiceId) {
-                                setSelectedInvoiceId(entry.invoiceId);
-                                setActiveTab('ledger');
-                                document.getElementById('dealer-invoice-payments')?.scrollIntoView({ behavior: 'smooth' });
-                              } else {
-                                const sale = sales.find((s) => s.customerName === entry.customer);
-                                if (sale) {
-                                  setSelectedSaleId(sale._id);
-                                  setShowPaymentForm(true);
+                        <div className="flex flex-wrap gap-2">
+                          {entry.balance > 0 && entry.status !== 'paid' && (
+                            <button
+                              onClick={() => {
+                                if (entry.sourceType === 'invoice' && entry.invoiceId) {
+                                  setSelectedInvoiceId(entry.invoiceId);
+                                  setActiveTab('ledger');
+                                  document.getElementById('dealer-invoice-payments')?.scrollIntoView({ behavior: 'smooth' });
+                                } else {
+                                  const sale = sales.find((s) => s.customerName === entry.customer);
+                                  if (sale) {
+                                    setSelectedSaleId(sale._id);
+                                    setShowPaymentForm(true);
+                                  }
                                 }
-                              }
-                            }}
-                            className="px-3 py-1 bg-primary-500 text-white rounded-lg text-xs font-semibold hover:bg-primary-600"
+                              }}
+                              className="px-3 py-1 bg-primary-500 text-white rounded-lg text-xs font-semibold hover:bg-primary-600"
+                            >
+                              Pay Now
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteLedger(entry)}
+                            disabled={deletingId === (entry.saleId || entry.invoiceId || entry.userOrderId || entry.customer)}
+                            className="px-3 py-1 bg-red-100 text-red-700 rounded-lg text-xs font-semibold hover:bg-red-200"
                           >
-                            Pay Now
+                            {deletingId === (entry.saleId || entry.invoiceId || entry.userOrderId || entry.customer)
+                              ? 'Deleting...'
+                              : 'Delete'}
                           </button>
-                        )}
+                        </div>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="6" className="py-8 text-center text-gray-500">
+                    <td colSpan="8" className="py-8 text-center text-gray-500">
                       No ledger entries found
                     </td>
                   </tr>
@@ -581,11 +716,12 @@ const Payments = () => {
                     <th className="text-left py-2 text-sm font-semibold text-gray-700">Date & Time</th>
                     <th className="text-left py-2 text-sm font-semibold text-gray-700">Mode of Payment</th>
                     <th className="text-left py-2 text-sm font-semibold text-gray-700">Type</th>
+                    <th className="text-left py-2 text-sm font-semibold text-gray-700">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {recentPayments.length > 0 ? (
-                    recentPayments.map((payment) => (
+                  {paymentsToShow.length > 0 ? (
+                    paymentsToShow.map((payment) => (
                       <tr key={payment._id} className="border-b hover:bg-gray-50">
                         <td className="py-2 text-sm text-gray-800 font-medium">
                           #{payment._id.slice(-8).toUpperCase()}
@@ -607,13 +743,23 @@ const Payments = () => {
                           {payment.paymentMethod?.replace('_', ' ') || 'Cash'}
                         </td>
                         <td className="py-2 text-sm text-gray-800">
-                          {payment.saleId ? 'Sale' : payment.invoiceId ? 'Invoice' : payment.userOrderId ? 'User Order' : '—'}
+                          {payment.saleId ? 'Sale' : payment.invoiceId ? 'Invoice' : payment.userOrderId ? 'User Order' : '-'}
+                        </td>
+                        <td className="py-2 text-sm text-gray-800">
+                          <button
+                            type="button"
+                            onClick={() => handleDeletePayment(payment._id)}
+                            disabled={deletingId === payment._id}
+                            className="text-xs font-semibold text-red-600 hover:text-red-700"
+                          >
+                            {deletingId === payment._id ? 'Deleting...' : 'Delete'}
+                          </button>
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="6" className="py-8 text-center text-gray-500">
+                      <td colSpan="7" className="py-8 text-center text-gray-500">
                         No recent payments found
                       </td>
                     </tr>
@@ -635,11 +781,12 @@ const Payments = () => {
                     <th className="text-right py-2 text-sm font-semibold text-gray-700">Balance</th>
                     <th className="text-left py-2 text-sm font-semibold text-gray-700">Status</th>
                     <th className="text-left py-2 text-sm font-semibold text-gray-700">Date</th>
+                    <th className="text-left py-2 text-sm font-semibold text-gray-700">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {invoices.length > 0 ? (
-                    invoices.slice(0, 15).map((inv) => {
+                  {invoicesToShow.length > 0 ? (
+                    invoicesToShow.map((inv) => {
                       const paid = inv.paidAmount || 0;
                       const amount = inv.amount || 0;
                       const balance = amount - paid;
@@ -648,7 +795,7 @@ const Payments = () => {
                         <tr key={inv._id} className="border-b hover:bg-gray-50">
                           <td className="py-2 text-sm text-gray-800 font-medium">{inv.invoiceNumber}</td>
                           <td className="py-2 text-sm text-gray-800">
-                            {inv.dealer?.dealerName || inv.dealerId || '—'}
+                            {inv.dealer?.dealerName || inv.dealerId || '-'}
                           </td>
                           <td className="py-2 text-sm text-gray-800 text-right">₹{amount?.toLocaleString()}</td>
                           <td className="py-2 text-sm text-green-600 text-right font-semibold">₹{paid?.toLocaleString()}</td>
@@ -661,12 +808,22 @@ const Payments = () => {
                           <td className="py-2 text-sm text-gray-800">
                             {new Date(inv.createdAt).toLocaleDateString('en-IN')}
                           </td>
+                          <td className="py-2 text-sm text-gray-800">
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteInvoice(inv._id)}
+                              disabled={deletingId === inv._id}
+                              className="text-xs font-semibold text-red-600 hover:text-red-700"
+                            >
+                              {deletingId === inv._id ? 'Deleting...' : 'Delete'}
+                            </button>
+                          </td>
                         </tr>
                       );
                     })
                   ) : (
                     <tr>
-                      <td colSpan="7" className="py-8 text-center text-gray-500">
+                      <td colSpan="8" className="py-8 text-center text-gray-500">
                         No invoices found
                       </td>
                     </tr>

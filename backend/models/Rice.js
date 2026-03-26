@@ -16,6 +16,11 @@ const riceSchema = new mongoose.Schema({
     required: true,
     min: 0
   },
+  ratePerKg: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
   bagsStock: {
     '5kg': { type: Number, default: 0, min: 0 },
     '10kg': { type: Number, default: 0, min: 0 },

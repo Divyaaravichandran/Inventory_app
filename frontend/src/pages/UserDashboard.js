@@ -15,7 +15,19 @@ import {
   FiDollarSign,
   FiActivity,
 } from 'react-icons/fi';
+<<<<<<< HEAD
 import { API_BASE_URL } from '../config/api';
+=======
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
+>>>>>>> ebaf816 (Modified some pages)
 
 const UserDashboard = () => {
   const { token } = useUserAuth();
@@ -28,6 +40,7 @@ const UserDashboard = () => {
   const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState('daily');
+  const [chartData, setChartData] = useState([]);
 
   useEffect(() => {
     if (token) {
@@ -36,6 +49,50 @@ const UserDashboard = () => {
       setLoading(false);
     }
   }, [period, token]);
+
+  const buildChartData = (orders, range) => {
+    const now = new Date();
+    const data = [];
+
+    if (range === 'daily') {
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(now.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        const count = orders.filter((o) => (o.createdAt || '').slice(0, 10) === key).length;
+        data.push({ label: d.toLocaleDateString(), orders: count });
+      }
+      return data;
+    }
+
+    if (range === 'weekly') {
+      for (let i = 3; i >= 0; i--) {
+        const end = new Date(now);
+        end.setDate(now.getDate() - i * 7);
+        const start = new Date(end);
+        start.setDate(end.getDate() - 6);
+        const count = orders.filter((o) => {
+          const dt = new Date(o.createdAt);
+          return dt >= start && dt <= end;
+        }).length;
+        data.push({ label: `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`, orders: count });
+      }
+      return data;
+    }
+
+    // monthly
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const month = d.getMonth();
+      const year = d.getFullYear();
+      const count = orders.filter((o) => {
+        const dt = new Date(o.createdAt);
+        return dt.getMonth() === month && dt.getFullYear() === year;
+      }).length;
+      data.push({ label: d.toLocaleString('en-IN', { month: 'short', year: 'numeric' }), orders: count });
+    }
+    return data;
+  };
 
   const fetchDashboardData = async () => {
     if (!token) return;
@@ -61,6 +118,7 @@ const UserDashboard = () => {
       });
 
       setRecentOrders(orders.slice(0, 5));
+      setChartData(buildChartData(orders, period));
     } catch (error) {
       const msg = error.response?.data?.message || error.message || 'Failed to load dashboard data';
       toast.error(msg);
@@ -158,12 +216,16 @@ const UserDashboard = () => {
               ))}
             </div>
           </div>
-          <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-            <div className="text-center">
-              <FiActivity className="mx-auto text-primary-600 mb-2" size={32} />
-              <p className="text-gray-600">Order trends</p>
-              <p className="text-sm text-gray-500">Total: {stats.totalOrders} orders</p>
-            </div>
+          <div className="h-64 bg-gray-50 rounded-lg p-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="label" hide={period === 'weekly'} />
+                <YAxis allowDecimals={false} />
+                <Tooltip />
+                <Line type="monotone" dataKey="orders" stroke="#2563eb" strokeWidth={2} />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </div>
 

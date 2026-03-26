@@ -86,4 +86,29 @@ router.get('/:id/details', auth, adminOnly, async (req, res) => {
   }
 });
 
+// Delete godown (only if no stock)
+router.delete('/:id', auth, adminOnly, async (req, res) => {
+  try {
+    const godown = await Godown.findById(req.params.id);
+    if (!godown) {
+      return res.status(404).json({ message: 'Godown not found' });
+    }
+
+    const [paddyCount, riceCount] = await Promise.all([
+      Paddy.countDocuments({ godownId: req.params.id }),
+      Rice.countDocuments({ godownId: req.params.id }),
+    ]);
+
+    if (paddyCount > 0 || riceCount > 0) {
+      return res.status(400).json({ message: 'Cannot delete godown with stock entries' });
+    }
+
+    await godown.deleteOne();
+    res.json({ message: 'Godown deleted' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;

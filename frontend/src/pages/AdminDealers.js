@@ -2,8 +2,12 @@ import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+<<<<<<< HEAD
 import { FiPlus, FiEdit2, FiToggleLeft, FiUser } from 'react-icons/fi';
 import { API_BASE_URL } from '../config/api';
+=======
+import { FiPlus, FiEdit2, FiToggleLeft, FiTrash2, FiUser } from 'react-icons/fi';
+>>>>>>> ebaf816 (Modified some pages)
 
 const AdminDealers = () => {
   const [dealers, setDealers] = useState([]);
@@ -133,6 +137,19 @@ const AdminDealers = () => {
       fetchDealers();
     } catch (error) {
       toast.error('Failed to disable dealer');
+    }
+  };
+
+  const handleDelete = async (dealer) => {
+    if (!window.confirm(`Are you sure you want to permanently delete dealer ${dealer.dealerName}?`)) return;
+    try {
+      await axios.delete(
+        `http://localhost:5000/api/dealers/${dealer._id}`
+      );
+      toast.success('Dealer permanently deleted');
+      fetchDealers();
+    } catch (error) {
+      toast.error('Failed to delete dealer');
     }
   };
 
@@ -359,6 +376,16 @@ const AdminDealers = () => {
                                 <FiToggleLeft size={14} />
                               </button>
                             )}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(dealer);
+                              }}
+                              className="p-2 rounded-lg bg-red-100 text-red-700 hover:bg-red-200"
+                            >
+                              <FiTrash2 size={14} />
+                            </button>
                           </div>
                         </td>
                       </tr>

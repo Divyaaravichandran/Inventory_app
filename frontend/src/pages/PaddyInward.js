@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -11,6 +11,7 @@ const PaddyInward = () => {
     paddyType: '',
     quantity: '',
     weight: '',
+    purchaseRate: '',
     qualityGrade: '',
     moisturePercent: '',
     sellerName: '',
@@ -23,9 +24,13 @@ const PaddyInward = () => {
   const [godowns, setGodowns] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [recentInward, setRecentInward] = useState([]);
+  const [showAllInward, setShowAllInward] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     fetchGodowns();
+    fetchRecentInward();
   }, []);
 
   const fetchGodowns = async () => {
@@ -34,6 +39,32 @@ const PaddyInward = () => {
       setGodowns(response.data);
     } catch (error) {
       toast.error('Failed to load godowns');
+    }
+  };
+
+  const fetchRecentInward = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/paddy');
+      const sorted = (response.data || []).sort(
+        (a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date)
+      );
+      setRecentInward(sorted);
+    } catch (error) {
+      // silent; optional section
+    }
+  };
+
+  const handleDeleteInward = async (id) => {
+    setDeletingId(id);
+    try {
+      await axios.delete(`http://localhost:5000/api/paddy/${id}`);
+      toast.success('Paddy inward deleted');
+      fetchRecentInward();
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to delete inward';
+      toast.error(message);
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -57,6 +88,10 @@ const PaddyInward = () => {
     if (!formData.quantity || isNaN(qty) || qty <= 0) errors.quantity = 'Enter a valid quantity greater than 0';
     const weight = parseFloat(formData.weight);
     if (!formData.weight || isNaN(weight) || weight <= 0) errors.weight = 'Enter a valid weight greater than 0';
+    const purchaseRate = parseFloat(formData.purchaseRate);
+    if (!formData.purchaseRate || isNaN(purchaseRate) || purchaseRate <= 0) {
+      errors.purchaseRate = 'Enter a valid purchase rate greater than 0';
+    }
     if (!formData.qualityGrade) errors.qualityGrade = 'Quality grade is required';
     const moist = parseFloat(formData.moisturePercent);
     if (formData.moisturePercent === '' || isNaN(moist) || moist < 0 || moist > 100) {
@@ -86,9 +121,11 @@ const PaddyInward = () => {
         ...formData,
         quantity: parseFloat(formData.quantity),
         weight: parseFloat(formData.weight),
+        purchaseRate: parseFloat(formData.purchaseRate),
         moisturePercent: parseFloat(formData.moisturePercent),
       });
       toast.success('Paddy inward added successfully!');
+      fetchRecentInward();
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
@@ -96,6 +133,7 @@ const PaddyInward = () => {
           paddyType: '',
           quantity: '',
           weight: '',
+          purchaseRate: '',
           qualityGrade: '',
           moisturePercent: '',
           sellerName: '',
@@ -177,10 +215,37 @@ const PaddyInward = () => {
                     onChange={handleChange}
                     className={`input-field ${formErrors.weight ? 'border-red-500' : ''}`}
                     placeholder="Enter weight in tons"
-                    step="0.01"
+                    step="0.001"
                     required
                   />
                   {formErrors.weight && <p className="mt-1 text-sm text-red-600">{formErrors.weight}</p>}
+                </div>
+
+                <div>
+                  <label className="label">Purchase Rate (₹/kg) *</label>
+                  <input
+                    type="number"
+                    name="purchaseRate"
+                    value={formData.purchaseRate}
+                    onChange={handleChange}
+                    className={`input-field ${formErrors.purchaseRate ? 'border-red-500' : ''}`}
+                    placeholder="Enter purchase rate per kg"
+                    step="0.01"
+                    min="0"
+                    required
+                  />
+                  {formErrors.purchaseRate && <p className="mt-1 text-sm text-red-600">{formErrors.purchaseRate}</p>}
+                </div>
+
+                <div>
+                  <label className="label">Purchase Amount (auto)</label>
+                  <div className="input-field bg-primary-50 border-primary-200 text-primary-700 font-semibold">
+                    ₹{(
+                      (parseFloat(formData.weight) || 0) *
+                      1000 *
+                      (parseFloat(formData.purchaseRate) || 0)
+                    ).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </div>
                 </div>
 
                 <div>
@@ -325,6 +390,81 @@ const PaddyInward = () => {
               </button>
             </div>
           </form>
+        </div>
+      </div>
+
+      {/* Recent Inward */}
+      <div className="mt-8 card">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold text-gray-800">Recent Inward</h2>
+          {recentInward.length > 5 && (
+            <button
+              type="button"
+              onClick={() => setShowAllInward((v) => !v)}
+              className="text-sm font-semibold text-primary-600 hover:text-primary-700"
+            >
+              {showAllInward ? 'Show Less' : 'Show More'}
+            </button>
+          )}
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b">
+                <th className="text-left py-2 text-sm font-semibold text-gray-700">Paddy ID</th>
+                <th className="text-left py-2 text-sm font-semibold text-gray-700">Type</th>
+                <th className="text-right py-2 text-sm font-semibold text-gray-700">Qty</th>
+                <th className="text-right py-2 text-sm font-semibold text-gray-700">Weight (tons)</th>
+                <th className="text-right py-2 text-sm font-semibold text-gray-700">Rate (₹/kg)</th>
+                <th className="text-right py-2 text-sm font-semibold text-gray-700">Amount</th>
+                <th className="text-left py-2 text-sm font-semibold text-gray-700">Seller</th>
+                <th className="text-left py-2 text-sm font-semibold text-gray-700">Date</th>
+                <th className="text-left py-2 text-sm font-semibold text-gray-700">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(showAllInward ? recentInward : recentInward.slice(0, 5)).length > 0 ? (
+                (showAllInward ? recentInward : recentInward.slice(0, 5)).map((item) => (
+                  <tr key={item._id} className="border-b">
+                    <td className="py-2 text-sm text-gray-800">{item.paddyId}</td>
+                    <td className="py-2 text-sm text-gray-800">{item.paddyType}</td>
+                    <td className="py-2 text-sm text-gray-800 text-right">{item.quantity}</td>
+                    <td className="py-2 text-sm text-gray-800 text-right">
+                      {Number(item.weight || 0).toFixed(2)}
+                    </td>
+                    <td className="py-2 text-sm text-gray-800 text-right">
+                      ₹{Number(item.purchaseRate || 0).toLocaleString('en-IN')}
+                    </td>
+                    <td className="py-2 text-sm text-gray-800 text-right">
+                      ₹{Number(item.purchaseAmount || 0).toLocaleString('en-IN')}
+                    </td>
+                    <td className="py-2 text-sm text-gray-800">
+                      {item.sellerName} ({item.sellerContact})
+                    </td>
+                    <td className="py-2 text-sm text-gray-800">
+                      {new Date(item.date || item.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="py-2 text-sm text-gray-800">
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteInward(item._id)}
+                        disabled={deletingId === item._id}
+                        className="text-xs font-semibold text-red-600 hover:text-red-700"
+                      >
+                        {deletingId === item._id ? 'Deleting...' : 'Delete'}
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="9" className="py-4 text-center text-gray-500">
+                    No inward records yet
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </Layout>

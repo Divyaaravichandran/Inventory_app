@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import DealerLayout from '../components/DealerLayout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -17,6 +17,8 @@ const DealerOrders = () => {
   ]);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  const [showAllHistory, setShowAllHistory] = useState(false);
 
   useEffect(() => {
     fetchOrders();
@@ -118,6 +120,22 @@ const DealerOrders = () => {
       setLoading(false);
     }
   };
+
+  const handleDeleteOrder = async (orderId) => {
+    setDeletingId(orderId);
+    try {
+      await axios.delete(`http://localhost:5000/api/dealer-orders/dealer/${orderId}`);
+      toast.success('Order deleted');
+      fetchOrders();
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to delete order';
+      toast.error(message);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const ordersToShow = showAllHistory ? orders : orders.slice(0, 5);
 
   return (
     <DealerLayout>
@@ -266,9 +284,18 @@ const DealerOrders = () => {
 
         {/* Orders table */}
         <div className="card">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Order History
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-800">Order History</h2>
+            {orders.length > 5 && (
+              <button
+                type="button"
+                onClick={() => setShowAllHistory((v) => !v)}
+                className="text-sm font-semibold text-primary-600 hover:text-primary-700"
+              >
+                {showAllHistory ? 'Show Less' : 'Show More'}
+              </button>
+            )}
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -285,11 +312,11 @@ const DealerOrders = () => {
                   <th className="text-left py-2 text-sm font-semibold text-gray-700">
                     Date
                   </th>
-                </tr>
+                                  </tr>
               </thead>
               <tbody>
                 {orders.length > 0 ? (
-                  orders.map((order) => (
+                  ordersToShow.map((order) => (
                     <tr key={order._id} className="border-b">
                       <td className="py-2 text-sm text-gray-800">
                         {order.riceType} - {order.brand}
@@ -297,18 +324,30 @@ const DealerOrders = () => {
                       <td className="py-2 text-sm text-gray-800">
                         {order.quantityBags} x {order.bagSize}
                       </td>
-                      <td className="py-2 text-sm text-gray-800 capitalize">
-                        {order.status}
-                      </td>
                       <td className="py-2 text-sm text-gray-800">
-                        {new Date(order.createdAt).toLocaleDateString()}
+                        <div className="flex items-center space-x-2">
+                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${order.status === 'pending' ? 'bg-amber-100 text-amber-700' : order.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                            {order.status}
+                          </span>
+                          {order.status === 'pending' && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteOrder(order._id)}
+                              disabled={deletingId === order._id}
+                              className="text-xs font-semibold text-red-600 hover:text-red-700"
+                            >
+                              {deletingId === order._id ? 'Deleting...' : 'Delete'}
+                            </button>
+                          )}
+                        </div>
                       </td>
+                      <td className="py-2 text-sm text-gray-800">{new Date(order.createdAt).toLocaleDateString()}</td>
                     </tr>
                   ))
                 ) : (
                   <tr>
                     <td
-                      colSpan="4"
+                      colSpan="5"
                       className="py-4 text-center text-gray-500 text-sm"
                     >
                       No orders yet

@@ -10,6 +10,8 @@ const UserOrders = () => {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [showAllOrders, setShowAllOrders] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     fetchOrders();
@@ -61,9 +63,6 @@ const UserOrders = () => {
   };
 
   const cancelOrder = async (orderId) => {
-    if (!window.confirm('Are you sure you want to cancel this order?')) {
-      return;
-    }
 
     try {
       await axios.put(`${API_BASE_URL}/api/user/orders/${orderId}/cancel`);
@@ -74,6 +73,22 @@ const UserOrders = () => {
       toast.error(message);
     }
   };
+
+  const deleteOrder = async (orderId) => {
+    setDeletingId(orderId);
+    try {
+      await axios.delete(`http://localhost:5000/api/user/orders/${orderId}`);
+      toast.success('Order deleted successfully');
+      fetchOrders();
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to delete order';
+      toast.error(message);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const ordersToShow = showAllOrders ? orders : orders.slice(0, 10);
 
   const viewOrderDetails = (order) => {
     setSelectedOrder(order);
@@ -104,10 +119,21 @@ const UserOrders = () => {
 
         {/* Orders Table - Admin Dealers/Orders style */}
         <div className="card">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-            <FiPackage className="mr-2 text-primary-600" />
-            Order List
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+              <FiPackage className="mr-2 text-primary-600" />
+              Order List
+            </h2>
+            {orders.length > 10 && (
+              <button
+                type="button"
+                onClick={() => setShowAllOrders((v) => !v)}
+                className="text-sm font-semibold text-primary-600 hover:text-primary-700"
+              >
+                {showAllOrders ? 'Show Less' : 'Show More'}
+              </button>
+            )}
+          </div>
 
           {orders.length > 0 ? (
             <>
@@ -124,7 +150,7 @@ const UserOrders = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {orders.map((order) => (
+                    {ordersToShow.map((order) => (
                       <tr
                         key={order._id}
                         className="border-b hover:bg-gray-50"
@@ -161,6 +187,17 @@ const UserOrders = () => {
                                 title="Cancel"
                               >
                                 Cancel
+                              </button>
+                            )}
+                            {(order.status === 'pending' || order.status === 'cancelled') && (
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); deleteOrder(order._id); }}
+                                className="p-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                                title="Delete"
+                                disabled={deletingId === order._id}
+                              >
+                                {deletingId === order._id ? '...' : 'Delete'}
                               </button>
                             )}
                           </div>

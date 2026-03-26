@@ -9,6 +9,7 @@ const DispatchTracking = () => {
   const [sales, setSales] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     fetchSales();
@@ -61,6 +62,10 @@ const DispatchTracking = () => {
     if (filter === 'all') return true;
     return sale.status === filter;
   });
+  const sortedSales = [...filteredSales].sort(
+    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+  );
+  const visibleSales = showAll ? sortedSales : sortedSales.slice(0, 5);
 
   if (loading) {
     return (
@@ -95,6 +100,18 @@ const DispatchTracking = () => {
         </div>
 
         <div className="card">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-800">Recent Dispatches</h2>
+            {sortedSales.length > 5 && (
+              <button
+                type="button"
+                onClick={() => setShowAll((v) => !v)}
+                className="text-sm font-semibold text-primary-600 hover:text-primary-700"
+              >
+                {showAll ? 'Show Less' : 'Show More'}
+              </button>
+            )}
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -123,8 +140,8 @@ const DispatchTracking = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredSales.length > 0 ? (
-                  filteredSales.map((sale) => (
+                {visibleSales.length > 0 ? (
+                  visibleSales.map((sale) => (
                     <tr key={sale._id} className="border-b hover:bg-gray-50">
                       <td className="py-4 px-4">
                         <div className="flex items-center">

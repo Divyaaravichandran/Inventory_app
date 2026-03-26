@@ -20,6 +20,11 @@ const salesSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  paddyId: {
+    type: String,
+    required: true,
+    trim: true
+  },
   quantity: {
     type: Number,
     required: true,

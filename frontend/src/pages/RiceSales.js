@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -13,6 +13,7 @@ const RiceSales = () => {
     customerContact: '',
     customerAddress: '',
     riceType: '',
+    paddyId: '',
     bagSize: '',
     quantityBags: '',
     quantity: '',
@@ -34,11 +35,14 @@ const RiceSales = () => {
   const [invoiceNotes, setInvoiceNotes] = useState('');
   const [invoiceLoading, setInvoiceLoading] = useState(false);
   const [riceStock, setRiceStock] = useState([]);
+  const [paddyBatches, setPaddyBatches] = useState([]);
+  const [expandedSaleId, setExpandedSaleId] = useState(null);
 
   useEffect(() => {
     fetchSales();
     fetchDealersAndOrders();
     fetchRiceStock();
+    fetchPaddyBatches();
   }, []);
 
   useEffect(() => {
@@ -86,6 +90,15 @@ const RiceSales = () => {
     }
   };
 
+  const fetchPaddyBatches = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/paddy');
+      setPaddyBatches(response.data || []);
+    } catch (error) {
+      console.error('Failed to load paddy batches:', error);
+    }
+  };
+
   const validateContact = (contact) => {
     // Remove any non-digit characters
     const digitsOnly = contact.replace(/\D/g, '');
@@ -124,6 +137,10 @@ const RiceSales = () => {
     // Validate Rice Type
     if (!formData.riceType || formData.riceType.trim().length === 0) {
       errors.riceType = 'Rice type is required';
+      isValid = false;
+    }
+    if (!formData.paddyId || formData.paddyId.trim().length === 0) {
+      errors.paddyId = 'Paddy ID is required';
       isValid = false;
     }
 
@@ -215,6 +232,7 @@ const RiceSales = () => {
         customerContact: '',
         customerAddress: '',
         riceType: '',
+        paddyId: '',
         bagSize: '',
         quantityBags: '',
         quantity: '',
@@ -243,6 +261,14 @@ const RiceSales = () => {
           ['approved', 'dispatched', 'delivered'].includes(o.status)
       )
     : [];
+
+  const getSuggestedInvoiceAmount = (order) => {
+    if (!order) return '';
+    const total =
+      Number(order.totalAmount || 0) ||
+      (Number(order.totalQuantityKg || 0) * Number(order.ratePerKg || 0));
+    return total > 0 ? total.toFixed(2) : '';
+  };
 
   const handleCreateInvoice = async (e) => {
     e.preventDefault();
@@ -340,6 +366,30 @@ const RiceSales = () => {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-700 mb-4">Rice Details</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="label">Paddy ID *</label>
+                      <select
+                        name="paddyId"
+                        value={formData.paddyId}
+                        onChange={handleChange}
+                        className={`input-field ${formErrors.paddyId ? 'border-red-500' : ''}`}
+                        required
+                      >
+                        <option value="">Select Paddy Batch</option>
+                        {paddyBatches.length > 0 ? (
+                          paddyBatches.map((paddy) => (
+                            <option key={paddy._id} value={paddy.paddyId}>
+                              {paddy.paddyId} - {paddy.paddyType} ({paddy.weight} tons)
+                            </option>
+                          ))
+                        ) : (
+                          <option value="" disabled>No paddy batches available</option>
+                        )}
+                      </select>
+                      {formErrors.paddyId && (
+                        <p className="mt-1 text-sm text-red-600">{formErrors.paddyId}</p>
+                      )}
+                    </div>
                     <div>
                       <label className="label">Rice Type *</label>
                       <select
@@ -499,24 +549,44 @@ const RiceSales = () => {
                 Recent Sales
               </h2>
               <div className="space-y-3 max-h-80 overflow-y-auto">
-                {sales.slice(0, 10).map((sale) => (
-                  <div key={sale._id} className="p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-semibold text-sm text-gray-800">
-                        {sale.customerName}
-                      </span>
-                      <span className="text-xs text-gray-600">
-                        {new Date(sale.createdAt).toLocaleDateString()}
-                      </span>
+                {sales.slice(0, 10).map((sale) => {
+                  const isOpen = expandedSaleId === sale._id;
+                  return (
+                    <div key={sale._id} className="p-3 bg-gray-50 rounded-lg">
+                      <button
+                        type="button"
+                        onClick={() => setExpandedSaleId(isOpen ? null : sale._id)}
+                        className="w-full text-left"
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-semibold text-sm text-gray-800">
+                            {sale.customerName}
+                          </span>
+                          <span className="text-xs text-gray-600">
+                            {new Date(sale.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-600">
+                          {sale.riceType} - {sale.quantity} kg
+                        </div>
+                        <div className="text-sm font-bold text-primary-700 mt-1">
+                          ₹{sale.totalAmount?.toLocaleString()}
+                        </div>
+                      </button>
+                      {isOpen && (
+                        <div className="mt-2 text-xs text-gray-600 space-y-1">
+                          <div>Contact: {sale.customerContact || '?'}</div>
+                          <div>Address: {sale.customerAddress || '?'}</div>
+                          <div>Paddy ID: {sale.paddyId || '?'}</div>
+                          <div>Bag Size: {sale.bagSize || '?'} | Bags: {sale.quantityBags || '?'}</div>
+                          <div>Rate: ₹{sale.rate || 0}/kg</div>
+                          <div>Vehicle: {sale.vehicleNumber || '?'} | Driver: {sale.driverName || '?'}</div>
+                          <div>Destination: {sale.destination || '?'}</div>
+                        </div>
+                      )}
                     </div>
-                    <div className="text-xs text-gray-600">
-                      {sale.riceType} - {sale.quantity} kg
-                    </div>
-                    <div className="text-sm font-bold text-primary-700 mt-1">
-                      ₹{sale.totalAmount?.toLocaleString()}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
                 {sales.length === 0 && (
                   <p className="text-center text-gray-500 text-sm py-4">
                     No sales yet
@@ -557,7 +627,13 @@ const RiceSales = () => {
                   <select
                     className="input-field"
                     value={selectedOrderId}
-                    onChange={(e) => setSelectedOrderId(e.target.value)}
+                    onChange={(e) => {
+                      const id = e.target.value;
+                      setSelectedOrderId(id);
+                      const selected = filteredOrdersForDealer.find((o) => o._id === id);
+                      const suggested = getSuggestedInvoiceAmount(selected);
+                      if (suggested) setInvoiceAmount(String(suggested));
+                    }}
                     disabled={!selectedDealerId || filteredOrdersForDealer.length === 0}
                   >
                     <option value="">

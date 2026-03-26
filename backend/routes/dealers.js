@@ -112,6 +112,22 @@ router.patch('/:id/disable', auth, adminOnly, async (req, res) => {
   }
 });
 
+// Delete dealer permanently
+router.delete('/:id', auth, adminOnly, async (req, res) => {
+  try {
+    const dealer = await Dealer.findByIdAndDelete(req.params.id);
+    if (!dealer) {
+      return res.status(404).json({ message: 'Dealer not found' });
+    }
+    // Note: We might also want to remove related orders/invoices to avoid orphan records,
+    // but based on "completely removed from database", deleting the dealer document achieves this.
+    res.json({ message: 'Dealer permanently deleted' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Dealer selection view: purchase history, orders, invoices
 router.get('/:id/overview', auth, adminOnly, async (req, res) => {
   try {

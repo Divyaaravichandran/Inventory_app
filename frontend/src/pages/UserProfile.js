@@ -185,35 +185,6 @@ const UserProfile = () => {
             </div>
           )}
         </div>
-
-        {/* Account Information - Admin Settings style */}
-        <div className="card mb-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-            <FiUser className="mr-2 text-primary-600" />
-            Account Information
-          </h2>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-              <div>
-                <p className="font-semibold text-gray-800">Account Type</p>
-                <p className="text-sm text-gray-600">Your role in the portal</p>
-              </div>
-              <span className="px-4 py-2 bg-primary-100 text-primary-700 rounded-lg font-semibold capitalize">
-                {user?.role || 'Customer'}
-              </span>
-            </div>
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-              <div>
-                <p className="font-semibold text-gray-800">Member Since</p>
-                <p className="text-sm text-gray-600">Account creation date</p>
-              </div>
-              <span className="font-semibold text-gray-800">
-                {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—'}
-              </span>
-            </div>
-          </div>
-        </div>
-
         {/* Quick Actions - Admin style cards */}
         <div className="card mb-6">
           <h2 className="text-xl font-semibold text-gray-800 mb-6">Quick Actions</h2>

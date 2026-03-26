@@ -26,7 +26,7 @@ router.get('/products', async (req, res) => {
       availableQuantity: item.quantity,
       bagsStock: item.bagsStock,
       godown: item.godownId,
-      ratePerKg: item.ratePerKg || 50, // Default rate if not set
+      ratePerKg: item.ratePerKg || 0,
       inStock: item.quantity > 0,
     }));
 
@@ -90,8 +90,13 @@ router.post(
             .json({ message: `Insufficient stock for ${item.riceType} - ${item.brand}` });
         }
 
-        // Calculate item total (using default rate if not set)
-        const ratePerKg = riceStock.ratePerKg || 50;
+        // Calculate item total (rate must be set by admin)
+        const ratePerKg = riceStock.ratePerKg || 0;
+        if (ratePerKg <= 0) {
+          return res
+            .status(400)
+            .json({ message: `Price not set for ${item.riceType} - ${item.brand}` });
+        }
         item.weightPerBag = weightPerBag;
         item.totalQuantityKg = totalKgNeeded;
         item.ratePerKg = ratePerKg;
@@ -112,6 +117,27 @@ router.post(
       });
 
       await order.save();
+
+      // Deduct inventory immediately on checkout
+      for (const item of items) {
+        const riceStock = await Rice.findOne({
+          riceType: item.riceType,
+          riceName: item.brand,
+          status: { $in: ['ready', 'in_production'] },
+        });
+
+        if (!riceStock) continue;
+
+        riceStock.quantity = Math.max(0, (riceStock.quantity || 0) - (item.totalQuantityKg || 0));
+        if (riceStock.bagsStock && item.bagSize) {
+          riceStock.bagsStock[item.bagSize] = Math.max(
+            0,
+            (riceStock.bagsStock[item.bagSize] || 0) - (item.quantityBags || 0)
+          );
+        }
+
+        await riceStock.save();
+      }
 
       // TODO: Send order confirmation email/SMS
       // TODO: Send notification to admin
@@ -178,6 +204,30 @@ router.put('/orders/:id/cancel', auth, userOnly, async (req, res) => {
     await order.save();
 
     res.json({ message: 'Order cancelled successfully', order });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Delete user order (only if pending or cancelled)
+router.delete('/orders/:id', auth, userOnly, async (req, res) => {
+  try {
+    const order = await UserOrder.findOne({
+      _id: req.params.id,
+      user: req.user._id,
+    });
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    if (!['pending', 'cancelled'].includes(order.status)) {
+      return res.status(400).json({ message: 'Only pending or cancelled orders can be deleted' });
+    }
+
+    await order.deleteOne();
+    res.json({ message: 'Order deleted' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -258,6 +308,21 @@ router.put('/admin/orders/:id/payment', auth, adminOnly, async (req, res) => {
     }
 
     res.json(order);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Admin: Delete user order
+router.delete('/admin/orders/:id', auth, adminOnly, async (req, res) => {
+  try {
+    const order = await UserOrder.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+    await order.deleteOne();
+    res.json({ message: 'Order deleted' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });

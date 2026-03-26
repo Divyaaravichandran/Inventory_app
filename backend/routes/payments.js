@@ -307,6 +307,7 @@ router.get('/ledger', auth, adminOnly, async (req, res) => {
           status: 'pending',
           date,
           sourceType: 'userOrder',
+          userOrderId: ord._id,
         });
       }
       const entry = ledgerMap.get(key);
@@ -335,6 +336,53 @@ router.get('/user-orders', auth, adminOnly, async (req, res) => {
       .sort({ paymentDate: -1 });
     
     res.json(payments);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Delete payment (and roll back balances)
+router.delete('/:id', auth, adminOnly, async (req, res) => {
+  try {
+    const payment = await Payment.findById(req.params.id);
+    if (!payment) {
+      return res.status(404).json({ message: 'Payment not found' });
+    }
+
+    if (payment.saleId) {
+      const sale = await Sales.findById(payment.saleId);
+      if (sale) {
+        sale.paidAmount = Math.max(0, (sale.paidAmount || 0) - (payment.amount || 0));
+        await sale.save();
+      }
+    }
+
+    if (payment.invoiceId) {
+      const invoice = await Invoice.findById(payment.invoiceId);
+      if (invoice) {
+        invoice.paidAmount = Math.max(0, (invoice.paidAmount || 0) - (payment.amount || 0));
+        if (invoice.paidAmount >= invoice.amount) {
+          invoice.paymentStatus = 'paid';
+        } else if (invoice.paidAmount > 0) {
+          invoice.paymentStatus = 'partial';
+        } else {
+          invoice.paymentStatus = 'pending';
+        }
+        await invoice.save();
+      }
+    }
+
+    if (payment.userOrderId) {
+      const order = await UserOrder.findById(payment.userOrderId);
+      if (order) {
+        order.paymentStatus = 'pending';
+        await order.save();
+      }
+    }
+
+    await payment.deleteOne();
+    res.json({ message: 'Payment deleted' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });

@@ -27,6 +27,7 @@ router.post('/', [
   body('paddyType').notEmpty().withMessage('Paddy type is required'),
   body('quantity').isNumeric().withMessage('Quantity must be a number'),
   body('weight').isNumeric().withMessage('Weight must be a number'),
+  body('purchaseRate').isNumeric().withMessage('Purchase rate must be a number'),
   body('qualityGrade').notEmpty().withMessage('Quality grade is required'),
   body('moisturePercent').isNumeric().withMessage('Moisture percentage must be a number'),
   body('sellerName').notEmpty().withMessage('Seller name is required'),
@@ -96,6 +97,28 @@ router.get('/stock', auth, adminOnly, async (req, res) => {
       byType: stock,
       total: totalStock[0]?.totalWeight || 0
     });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Delete paddy inward record
+router.delete('/:id', auth, adminOnly, async (req, res) => {
+  try {
+    const paddy = await Paddy.findById(req.params.id);
+    if (!paddy) {
+      return res.status(404).json({ message: 'Paddy record not found' });
+    }
+
+    const godown = await Godown.findById(paddy.godownId);
+    if (godown) {
+      godown.currentStock = Math.max(0, (godown.currentStock || 0) - (paddy.weight || 0));
+      await godown.save();
+    }
+
+    await paddy.deleteOne();
+    res.json({ message: 'Paddy record deleted' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });

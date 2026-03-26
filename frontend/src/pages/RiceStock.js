@@ -1,19 +1,26 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+<<<<<<< HEAD
 import { FiBox, FiPlus } from 'react-icons/fi';
 import { API_BASE_URL } from '../config/api';
+=======
+import { FiBox, FiPlus, FiTrash2 } from 'react-icons/fi';
+>>>>>>> ebaf816 (Modified some pages)
 
 const RiceStock = () => {
   const [riceStock, setRiceStock] = useState([]);
   const [godowns, setGodowns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     riceName: '',
     riceType: '',
     quantity: '',
+    ratePerKg: '',
     godownId: '',
     bagsStock: {
       '5kg': '',
@@ -69,28 +76,98 @@ const RiceStock = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+<<<<<<< HEAD
       await axios.post(`${API_BASE_URL}/api/rice`, {
+=======
+      const payload = {
+>>>>>>> ebaf816 (Modified some pages)
         ...formData,
         quantity: parseFloat(formData.quantity),
+        ratePerKg: parseFloat(formData.ratePerKg) || 0,
         bagsStock: {
           '5kg': parseFloat(formData.bagsStock['5kg']) || 0,
           '10kg': parseFloat(formData.bagsStock['10kg']) || 0,
           '25kg': parseFloat(formData.bagsStock['25kg']) || 0,
           '75kg': parseFloat(formData.bagsStock['75kg']) || 0,
         },
-      });
-      toast.success('Rice stock added successfully!');
+      };
+      const totalBagsKg =
+        payload.bagsStock['5kg'] * 5 +
+        payload.bagsStock['10kg'] * 10 +
+        payload.bagsStock['25kg'] * 25 +
+        payload.bagsStock['75kg'] * 75;
+      if ((payload.quantity || 0) <= 0) {
+        toast.error('Please enter available quantity');
+        return;
+      }
+      if (totalBagsKg > payload.quantity) {
+        toast.error('Bag stock exceeds available quantity');
+        return;
+      }
+
+      if (isEditing && editingId) {
+        await axios.put(`http://localhost:5000/api/rice/${editingId}`, payload);
+        toast.success('Rice stock updated successfully!');
+      } else {
+        await axios.post('http://localhost:5000/api/rice', payload);
+        toast.success('Rice stock added successfully!');
+      }
       setShowForm(false);
+      setIsEditing(false);
+      setEditingId(null);
       setFormData({
         riceName: '',
         riceType: '',
         quantity: '',
+        ratePerKg: '',
         godownId: '',
         bagsStock: { '5kg': '', '10kg': '', '25kg': '', '75kg': '' },
       });
       fetchRiceStock();
     } catch (error) {
-      const message = error.response?.data?.message || 'Failed to add rice stock';
+      const message =
+        error.response?.data?.message ||
+        (isEditing ? 'Failed to update rice stock' : 'Failed to add rice stock');
+      toast.error(message);
+    }
+  };
+
+  const getBagsTotalKg = () => {
+    const b = formData.bagsStock || {};
+    return (
+      (parseFloat(b['5kg']) || 0) * 5 +
+      (parseFloat(b['10kg']) || 0) * 10 +
+      (parseFloat(b['25kg']) || 0) * 25 +
+      (parseFloat(b['75kg']) || 0) * 75
+    );
+  };
+
+  const handleEdit = (rice) => {
+    setShowForm(true);
+    setIsEditing(true);
+    setEditingId(rice._id);
+    setFormData({
+      riceName: rice.riceName || '',
+      riceType: rice.riceType || '',
+      quantity: rice.quantity ?? '',
+      ratePerKg: rice.ratePerKg ?? '',
+      godownId: rice.godownId?._id || '',
+      bagsStock: {
+        '5kg': rice.bagsStock?.['5kg'] ?? '',
+        '10kg': rice.bagsStock?.['10kg'] ?? '',
+        '25kg': rice.bagsStock?.['25kg'] ?? '',
+        '75kg': rice.bagsStock?.['75kg'] ?? '',
+      },
+    });
+  };
+
+  const handleDelete = async (rice) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/rice/${rice._id}`);
+      toast.success('Rice stock deleted');
+      fetchRiceStock();
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to delete rice stock';
       toast.error(message);
     }
   };
@@ -110,15 +187,38 @@ const RiceStock = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-gray-800">Rice Stock</h1>
-          <button onClick={() => setShowForm(!showForm)} className="btn-primary flex items-center space-x-2">
+          <button
+            onClick={() => {
+              if (showForm) {
+                setShowForm(false);
+                setIsEditing(false);
+                setEditingId(null);
+              } else {
+                setShowForm(true);
+                setIsEditing(false);
+                setEditingId(null);
+                setFormData({
+                  riceName: '',
+                  riceType: '',
+                  quantity: '',
+                  ratePerKg: '',
+                  godownId: '',
+                  bagsStock: { '5kg': '', '10kg': '', '25kg': '', '75kg': '' },
+                });
+              }
+            }}
+            className="btn-primary flex items-center space-x-2"
+          >
             <FiPlus />
-            <span>Add Rice Stock</span>
+            <span>{showForm ? 'Close Form' : 'Add Rice Stock'}</span>
           </button>
         </div>
 
         {showForm && (
           <div className="card mb-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Add Rice Stock</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              {isEditing ? 'Edit Rice Stock' : 'Add Rice Stock'}
+            </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -164,6 +264,19 @@ const RiceStock = () => {
                   />
                 </div>
                 <div>
+                  <label className="label">Rate (₹/kg) *</label>
+                  <input
+                    type="number"
+                    name="ratePerKg"
+                    value={formData.ratePerKg}
+                    onChange={handleChange}
+                    className="input-field"
+                    step="0.01"
+                    min="0"
+                    required
+                  />
+                </div>
+                <div>
                   <label className="label">Godown *</label>
                   <select
                     name="godownId"
@@ -198,14 +311,27 @@ const RiceStock = () => {
                     </div>
                   ))}
                 </div>
+                <div className="mt-3 text-sm text-gray-600 flex items-center justify-between">
+                  <span>Bags Total</span>
+                  <span className="font-semibold text-gray-800">
+                    {getBagsTotalKg().toLocaleString()} kg
+                  </span>
+                </div>
+                <div className="mt-1 text-xs text-gray-500">
+                  Remaining: {Math.max(0, (parseFloat(formData.quantity) || 0) - getBagsTotalKg()).toLocaleString()} kg
+                </div>
               </div>
               <div className="flex space-x-4">
                 <button type="submit" className="btn-primary">
-                  Add Stock
+                  {isEditing ? 'Update Stock' : 'Add Stock'}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setShowForm(false)}
+                  onClick={() => {
+                    setShowForm(false);
+                    setIsEditing(false);
+                    setEditingId(null);
+                  }}
                   className="btn-secondary"
                 >
                   Cancel
@@ -217,14 +343,39 @@ const RiceStock = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {riceStock.map((rice) => (
-            <div key={rice._id} className="card transform hover:scale-105 transition-all">
+            <div
+              key={rice._id}
+              className={`card transform hover:scale-105 transition-all border ${
+                (Number(rice.quantity) || 0) < 50
+                  ? 'border-red-200'
+                  : (Number(rice.quantity) || 0) >= 50 && (Number(rice.quantity) || 0) <= 100
+                  ? 'border-amber-200'
+                  : 'border-gray-200'
+              }`}
+            >
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h3 className="text-xl font-bold text-gray-800 mb-1">{rice.riceName}</h3>
                   <p className="text-sm text-gray-600 capitalize">{rice.riceType}</p>
                 </div>
-                <div className="px-3 py-1 bg-green-100 text-green-700 rounded-lg text-xs font-semibold capitalize">
-                  {rice.status}
+                <div className="flex items-center space-x-2">
+                  <div className="px-3 py-1 bg-green-100 text-green-700 rounded-lg text-xs font-semibold capitalize">
+                    {rice.status}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleEdit(rice)}
+                    className="text-xs font-semibold text-primary-600 hover:text-primary-700"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(rice)}
+                    className="text-xs font-semibold text-red-600 hover:text-red-700"
+                  >
+                    Delete
+                  </button>
                 </div>
               </div>
 
@@ -232,6 +383,12 @@ const RiceStock = () => {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Available Quantity</span>
                   <span className="text-lg font-bold text-gray-800">{rice.quantity} kg</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Rate (₹/kg)</span>
+                  <span className="text-sm font-semibold text-gray-800">
+                    ₹{Number(rice.ratePerKg || 0).toLocaleString('en-IN')}
+                  </span>
                 </div>
                 {rice.godownId && (
                   <div className="flex items-center justify-between">

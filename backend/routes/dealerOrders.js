@@ -47,6 +47,8 @@ router.post(
       const { riceType, brand, bagSize, quantityBags } = req.body;
       const weightPerBag = BAG_WEIGHTS[bagSize];
       const totalQuantityKg = weightPerBag * quantityBags;
+      const ratePerKg = Number(req.body.ratePerKg || 0);
+      const totalAmount = ratePerKg > 0 ? totalQuantityKg * ratePerKg : 0;
 
       const order = new DealerOrder({
         dealer: dealer._id,
@@ -56,6 +58,8 @@ router.post(
         bagSize,
         quantityBags,
         totalQuantityKg,
+        ratePerKg,
+        totalAmount,
         status: 'pending',
         createdByUser: req.user._id,
       });
@@ -125,14 +129,25 @@ router.post('/:id/approve', auth, adminOnly, async (req, res) => {
 
     // Check bag and quantity availability
     const availableBags = riceStock.bagsStock[order.bagSize] || 0;
-    if (availableBags < order.quantityBags || riceStock.quantity < totalKgNeeded) {
+    const totalBagsTracked = Object.values(riceStock.bagsStock || {}).reduce(
+      (sum, val) => sum + (Number(val) || 0),
+      0
+    );
+    if (riceStock.quantity < totalKgNeeded) {
       return res
         .status(400)
-        .json({ message: 'Insufficient stock to approve this order' });
+        .json({ message: 'Insufficient quantity to approve this order' });
+    }
+    if (totalBagsTracked > 0 && availableBags < order.quantityBags) {
+      return res
+        .status(400)
+        .json({ message: 'Insufficient bags to approve this order' });
     }
 
-    // Deduct inventory
-    riceStock.bagsStock[order.bagSize] -= order.quantityBags;
+    // Deduct inventory (only bags if tracking is enabled)
+    if (totalBagsTracked > 0) {
+      riceStock.bagsStock[order.bagSize] -= order.quantityBags;
+    }
     riceStock.quantity -= totalKgNeeded;
     await riceStock.save();
 
@@ -209,6 +224,72 @@ router.get('/dealer/analytics', auth, dealerOnly, async (req, res) => {
       mostPurchasedRiceType,
       lastOrderDate,
     });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Dealer: delete own pending order (no invoice created)
+router.delete('/dealer/:id', auth, dealerOnly, async (req, res) => {
+  try {
+    const order = await DealerOrder.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+    if (order.dealerId !== req.user.dealerId) {
+      return res.status(403).json({ message: 'Not allowed to delete this order' });
+    }
+    if (order.status !== 'pending') {
+      return res.status(400).json({ message: 'Only pending orders can be deleted' });
+    }
+
+    const existingInvoice = await Invoice.findOne({ order: order._id });
+    if (existingInvoice) {
+      return res.status(400).json({ message: 'Order already invoiced' });
+    }
+
+    await order.deleteOne();
+    res.json({ message: 'Order deleted' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Admin: delete order (restock if needed)
+router.delete('/:id', auth, adminOnly, async (req, res) => {
+  try {
+    const order = await DealerOrder.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    // Restock if inventory was already deducted
+    if (['approved', 'dispatched', 'delivered'].includes(order.status)) {
+      const weightPerBag = BAG_WEIGHTS[order.bagSize];
+      const totalKgNeeded = weightPerBag * order.quantityBags;
+      const riceStock = await Rice.findOne({
+        riceType: order.riceType,
+        riceName: order.brand,
+        status: { $in: ['ready', 'in_production'] },
+      });
+      if (riceStock) {
+        const totalBagsTracked = Object.values(riceStock.bagsStock || {}).reduce(
+          (sum, val) => sum + (Number(val) || 0),
+          0
+        );
+        if (totalBagsTracked > 0) {
+          riceStock.bagsStock[order.bagSize] =
+            (riceStock.bagsStock[order.bagSize] || 0) + order.quantityBags;
+        }
+        riceStock.quantity += totalKgNeeded;
+        await riceStock.save();
+      }
+    }
+
+    await order.deleteOne();
+    res.json({ message: 'Order deleted' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });

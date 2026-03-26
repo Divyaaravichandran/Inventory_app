@@ -4,6 +4,12 @@ const Rice = require('../models/Rice');
 const { auth, adminOnly } = require('../middleware/auth');
 
 const router = express.Router();
+const BAG_WEIGHTS = { '5kg': 5, '10kg': 10, '25kg': 25, '75kg': 75 };
+const getBagsTotalKg = (bagsStock = {}) =>
+  Object.entries(bagsStock).reduce((sum, [size, count]) => {
+    const weight = BAG_WEIGHTS[size] || 0;
+    return sum + weight * (Number(count) || 0);
+  }, 0);
 
 // Get all rice stock
 router.get('/', auth, adminOnly, async (req, res) => {
@@ -33,6 +39,13 @@ router.post('/', [
       return res.status(400).json({ errors: errors.array() });
     }
 
+    const totalBagsKg = getBagsTotalKg(req.body.bagsStock);
+    if (totalBagsKg > Number(req.body.quantity || 0)) {
+      return res.status(400).json({
+        message: 'Bag stock exceeds available quantity',
+      });
+    }
+
     const rice = new Rice(req.body);
     await rice.save();
 
@@ -49,6 +62,13 @@ router.post('/', [
 // Update rice stock
 router.put('/:id', [auth, adminOnly], async (req, res) => {
   try {
+    const totalBagsKg = getBagsTotalKg(req.body.bagsStock);
+    if (totalBagsKg > Number(req.body.quantity || 0)) {
+      return res.status(400).json({
+        message: 'Bag stock exceeds available quantity',
+      });
+    }
+
     const rice = await Rice.findByIdAndUpdate(
       req.params.id,
       req.body,
@@ -104,6 +124,21 @@ router.get('/stock', auth, adminOnly, async (req, res) => {
       byType: stock,
       bagsStock: bagStock[0] || { '5kg': 0, '10kg': 0, '25kg': 0, '75kg': 0 }
     });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Delete rice stock
+router.delete('/:id', auth, adminOnly, async (req, res) => {
+  try {
+    const rice = await Rice.findById(req.params.id);
+    if (!rice) {
+      return res.status(404).json({ message: 'Rice stock not found' });
+    }
+    await rice.deleteOne();
+    res.json({ message: 'Rice stock deleted' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });

@@ -2,6 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const Sales = require('../models/Sales');
 const Rice = require('../models/Rice');
+const Payment = require('../models/Payment');
 const { auth, adminOnly } = require('../middleware/auth');
 
 const router = express.Router();
@@ -26,6 +27,7 @@ router.post('/', [
   body('customerName').notEmpty().withMessage('Customer name is required'),
   body('customerContact').notEmpty().withMessage('Customer contact is required'),
   body('riceType').notEmpty().withMessage('Rice type is required'),
+  body('paddyId').notEmpty().withMessage('Paddy ID is required'),
   body('quantity').isNumeric().withMessage('Quantity must be a number'),
   body('rate').isNumeric().withMessage('Rate must be a number')
 ], async (req, res) => {
@@ -35,12 +37,13 @@ router.post('/', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { riceType, quantity, rate, ...otherData } = req.body;
+    const { riceType, quantity, rate, paddyId, ...otherData } = req.body;
     const totalAmount = quantity * rate;
 
     const sale = new Sales({
       ...otherData,
       riceType,
+      paddyId,
       quantity,
       rate,
       totalAmount,
@@ -89,6 +92,22 @@ router.get('/recent', auth, adminOnly, async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(limit);
     res.json(sales);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Delete sale
+router.delete('/:id', auth, adminOnly, async (req, res) => {
+  try {
+    const sale = await Sales.findById(req.params.id);
+    if (!sale) {
+      return res.status(404).json({ message: 'Sale not found' });
+    }
+    await Payment.deleteMany({ saleId: sale._id });
+    await sale.deleteOne();
+    res.json({ message: 'Sale deleted' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
