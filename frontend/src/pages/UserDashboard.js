@@ -15,9 +15,7 @@ import {
   FiDollarSign,
   FiActivity,
 } from 'react-icons/fi';
-<<<<<<< HEAD
 import { API_BASE_URL } from '../config/api';
-=======
 import {
   LineChart,
   Line,
@@ -27,7 +25,6 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
->>>>>>> ebaf816 (Modified some pages)
 
 const UserDashboard = () => {
   const { token } = useUserAuth();

@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import DealerLayout from '../components/DealerLayout';
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
@@ -32,13 +32,8 @@ const DealerDashboard = () => {
 
   const fetchOrders = async () => {
     try {
-<<<<<<< HEAD
       const res = await axios.get(`${API_BASE_URL}/api/dealer-orders/dealer`);
-      setRecentOrders(res.data.slice(0, 5));
-=======
-      const res = await axios.get('http://localhost:5000/api/dealer-orders/dealer');
       setRecentOrders(res.data || []);
->>>>>>> ebaf816 (Modified some pages)
     } catch (error) {
       // silent
     }
@@ -46,13 +41,8 @@ const DealerDashboard = () => {
 
   const fetchInvoices = async () => {
     try {
-<<<<<<< HEAD
       const res = await axios.get(`${API_BASE_URL}/api/invoices/dealer`);
-      setRecentInvoices(res.data.slice(0, 5));
-=======
-      const res = await axios.get('http://localhost:5000/api/invoices/dealer');
       setRecentInvoices(res.data || []);
->>>>>>> ebaf816 (Modified some pages)
     } catch (error) {
       // silent
     }

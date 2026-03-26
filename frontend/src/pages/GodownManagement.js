@@ -2,13 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-<<<<<<< HEAD
-import { FiPlus, FiMapPin, FiPackage, FiX } from 'react-icons/fi';
-import { API_BASE_URL } from '../config/api';
-=======
 import { FiPlus, FiMapPin, FiPackage, FiTrash2, FiX, FiEdit2 } from 'react-icons/fi';
-
->>>>>>> ebaf816 (Modified some pages)
+import { API_BASE_URL } from '../config/api';
 
 const GodownManagement = () => {
   const [godowns, setGodowns] = useState([]);
@@ -51,27 +46,19 @@ const GodownManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-<<<<<<< HEAD
-      await axios.post(`${API_BASE_URL}/api/godown`, {
-        ...formData,
-        capacity: parseFloat(formData.capacity),
-      });
-      toast.success('Godown added successfully!');
-=======
       if (isEditing) {
-        await axios.put(`http://localhost:5000/api/godown/${editingId}`, {
+        await axios.put(`${API_BASE_URL}/api/godown/${editingId}`, {
           ...formData,
           capacity: parseFloat(formData.capacity),
         });
         toast.success('Godown updated successfully!');
       } else {
-        await axios.post('http://localhost:5000/api/godown', {
+        await axios.post(`${API_BASE_URL}/api/godown`, {
           ...formData,
           capacity: parseFloat(formData.capacity),
         });
         toast.success('Godown added successfully!');
       }
->>>>>>> ebaf816 (Modified some pages)
       setShowForm(false);
       setIsEditing(false);
       setEditingId(null);
@@ -123,7 +110,7 @@ const GodownManagement = () => {
   const handleDeleteGodown = async (godown, e) => {
     e.stopPropagation();
     try {
-      await axios.delete(`http://localhost:5000/api/godown/${godown._id}`);
+      await axios.delete(`${API_BASE_URL}/api/godown/${godown._id}`);
       toast.success('Godown deleted');
       if (selectedGodown?._id === godown._id) {
         closeGodownDetails();
@@ -137,7 +124,7 @@ const GodownManagement = () => {
 
   const handleDeletePaddy = async (paddyId) => {
     try {
-      await axios.delete(`http://localhost:5000/api/paddy/${paddyId}`);
+      await axios.delete(`${API_BASE_URL}/api/paddy/${paddyId}`);
       toast.success('Paddy stock deleted');
       if (selectedGodown) {
         handleGodownClick(selectedGodown);
@@ -151,7 +138,7 @@ const GodownManagement = () => {
 
   const handleDeleteRice = async (riceId) => {
     try {
-      await axios.delete(`http://localhost:5000/api/rice/${riceId}`);
+      await axios.delete(`${API_BASE_URL}/api/rice/${riceId}`);
       toast.success('Rice stock deleted');
       if (selectedGodown) {
         handleGodownClick(selectedGodown);

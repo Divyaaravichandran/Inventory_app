@@ -2,12 +2,8 @@ import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-<<<<<<< HEAD
-import { FiPlus, FiEdit2, FiToggleLeft, FiUser } from 'react-icons/fi';
-import { API_BASE_URL } from '../config/api';
-=======
 import { FiPlus, FiEdit2, FiToggleLeft, FiTrash2, FiUser } from 'react-icons/fi';
->>>>>>> ebaf816 (Modified some pages)
+import { API_BASE_URL } from '../config/api';
 
 const AdminDealers = () => {
   const [dealers, setDealers] = useState([]);

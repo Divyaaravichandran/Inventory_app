@@ -24,7 +24,7 @@ A comprehensive MERN stack application for managing rice industry operations inc
 ## Project Structure
 
 ```
-CP_3/
+InventoryApp/
 ├── backend/
 │   ├── models/          # MongoDB schemas
 │   ├── routes/          # API routes

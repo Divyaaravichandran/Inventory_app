@@ -1,1 +1,1 @@
-export const API_BASE_URL = "https://inventory-management-system-y2uc.onrender.com";
+export const API_BASE_URL = 'http://localhost:5000';

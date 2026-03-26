@@ -1,13 +1,9 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-<<<<<<< HEAD
-import { FiBox, FiPlus } from 'react-icons/fi';
-import { API_BASE_URL } from '../config/api';
-=======
 import { FiBox, FiPlus, FiTrash2 } from 'react-icons/fi';
->>>>>>> ebaf816 (Modified some pages)
+import { API_BASE_URL } from '../config/api';
 
 const RiceStock = () => {
   const [riceStock, setRiceStock] = useState([]);
@@ -76,11 +72,7 @@ const RiceStock = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-<<<<<<< HEAD
-      await axios.post(`${API_BASE_URL}/api/rice`, {
-=======
       const payload = {
->>>>>>> ebaf816 (Modified some pages)
         ...formData,
         quantity: parseFloat(formData.quantity),
         ratePerKg: parseFloat(formData.ratePerKg) || 0,
@@ -106,10 +98,10 @@ const RiceStock = () => {
       }
 
       if (isEditing && editingId) {
-        await axios.put(`http://localhost:5000/api/rice/${editingId}`, payload);
+        await axios.put(`${API_BASE_URL}/api/rice/${editingId}`, payload);
         toast.success('Rice stock updated successfully!');
       } else {
-        await axios.post('http://localhost:5000/api/rice', payload);
+        await axios.post(`${API_BASE_URL}/api/rice`, payload);
         toast.success('Rice stock added successfully!');
       }
       setShowForm(false);
@@ -163,7 +155,7 @@ const RiceStock = () => {
 
   const handleDelete = async (rice) => {
     try {
-      await axios.delete(`http://localhost:5000/api/rice/${rice._id}`);
+      await axios.delete(`${API_BASE_URL}/api/rice/${rice._id}`);
       toast.success('Rice stock deleted');
       fetchRiceStock();
     } catch (error) {
