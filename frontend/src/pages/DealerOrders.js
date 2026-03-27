@@ -1,4 +1,3 @@
-﻿// eslint-disable-next-line unicode-bom
 import React, { useEffect, useState } from 'react';
 import DealerLayout from '../components/DealerLayout';
 import axios from 'axios';
@@ -235,7 +234,7 @@ const DealerOrders = () => {
                     />
                   </div>
                   <div>
-                    <label className="label">Rate (₹/kg)</label>
+                    <label className="label">Rate (?/kg)</label>
                     <input
                       type="number"
                       value={item.ratePerKg}
@@ -252,7 +251,7 @@ const DealerOrders = () => {
                   <div className="mt-3 text-right">
                     <span className="text-sm text-gray-600">Item Total: </span>
                     <span className="font-bold text-primary-600">
-                      ₹{calculateItemTotal(item).toLocaleString()}
+                      ?{calculateItemTotal(item).toLocaleString()}
                     </span>
                   </div>
                 )}
@@ -265,7 +264,7 @@ const DealerOrders = () => {
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold text-gray-800">Grand Total:</span>
                   <span className="text-2xl font-bold text-primary-600">
-                    ₹{calculateTotalAmount().toLocaleString()}
+                    ?{calculateTotalAmount().toLocaleString()}
                   </span>
                 </div>
               </div>

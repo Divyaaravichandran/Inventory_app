@@ -1,4 +1,3 @@
-﻿// eslint-disable-next-line unicode-bom
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiKey } from 'react-icons/fi';

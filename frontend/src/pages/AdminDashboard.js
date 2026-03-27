@@ -35,6 +35,7 @@ const AdminDashboard = () => {
   const [showAllPaddyStock, setShowAllPaddyStock] = useState(false);
   const [showAllRecentSales, setShowAllRecentSales] = useState(false);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchDashboardData();
     fetchChartData();
@@ -43,7 +44,7 @@ const AdminDashboard = () => {
     fetchRecentSales();
     fetchDealerSummary();
     fetchOrdersSummary();
-  }, [period, fetchChartData]);
+  }, [period]);
 
   const fetchDashboardData = async () => {
     try {

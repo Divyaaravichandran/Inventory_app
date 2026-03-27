@@ -1,4 +1,3 @@
-﻿// eslint-disable-next-line unicode-bom
 import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import axios from 'axios';
@@ -277,7 +276,7 @@ const AdminRecentOrders = () => {
                         {activeTab === 'online' && (
                           <>
                             <td className="py-2 text-sm text-gray-800 text-right font-semibold">
-                              ₹{order.totalAmount?.toLocaleString() || 0}
+                              ?{order.totalAmount?.toLocaleString() || 0}
                             </td>
                             <td className="py-2 text-sm text-gray-800">
                               <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
