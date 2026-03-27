@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -90,11 +90,11 @@ const Payments = () => {
     setDeletingId(entry.saleId || entry.invoiceId || entry.userOrderId || entry.customer);
     try {
       if (entry.sourceType === 'sale' && entry.saleId) {
-        await axios.delete(`http://localhost:5000/api/sales/${entry.saleId}`);
+        await axios.delete(`${API_BASE_URL}/api/sales/${entry.saleId}`);
       } else if (entry.sourceType === 'invoice' && entry.invoiceId) {
-        await axios.delete(`http://localhost:5000/api/invoices/${entry.invoiceId}`);
+        await axios.delete(`${API_BASE_URL}/api/invoices/${entry.invoiceId}`);
       } else if (entry.sourceType === 'userOrder' && entry.userOrderId) {
-        await axios.delete(`http://localhost:5000/api/user/admin/orders/${entry.userOrderId}`);
+        await axios.delete(`${API_BASE_URL}/api/user/admin/orders/${entry.userOrderId}`);
       }
       toast.success('Entry deleted');
       fetchSummary();
@@ -113,7 +113,7 @@ const Payments = () => {
   const handleDeletePayment = async (paymentId) => {
     setDeletingId(paymentId);
     try {
-      await axios.delete(`http://localhost:5000/api/payments/${paymentId}`);
+      await axios.delete(`${API_BASE_URL}/api/payments/${paymentId}`);
       toast.success('Payment deleted');
       fetchSummary();
       fetchLedger();
@@ -130,7 +130,7 @@ const Payments = () => {
   const handleDeleteInvoice = async (invoiceId) => {
     setDeletingId(invoiceId);
     try {
-      await axios.delete(`http://localhost:5000/api/invoices/${invoiceId}`);
+      await axios.delete(`${API_BASE_URL}/api/invoices/${invoiceId}`);
       toast.success('Invoice deleted');
       fetchSummary();
       fetchLedger();

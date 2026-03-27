@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -67,7 +67,7 @@ const AdminRecentOrders = () => {
   const handleDeleteDealerOrder = async (orderId) => {
     setDeletingId(orderId);
     try {
-      await axios.delete(`http://localhost:5000/api/dealer-orders/${orderId}`);
+      await axios.delete(`${API_BASE_URL}/api/dealer-orders/${orderId}`);
       toast.success('Dealer order deleted');
       fetchDealerOrders();
     } catch (error) {
@@ -81,7 +81,7 @@ const AdminRecentOrders = () => {
   const handleDeleteUserOrder = async (orderId) => {
     setDeletingId(orderId);
     try {
-      await axios.delete(`http://localhost:5000/api/user/admin/orders/${orderId}`);
+      await axios.delete(`${API_BASE_URL}/api/user/admin/orders/${orderId}`);
       toast.success('Online order deleted');
       fetchUserOrders();
     } catch (error) {

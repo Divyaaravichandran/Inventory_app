@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -44,7 +44,7 @@ const PaddyInward = () => {
 
   const fetchRecentInward = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/paddy');
+      const response = await axios.get(`${API_BASE_URL}/api/paddy`);
       const sorted = (response.data || []).sort(
         (a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date)
       );
@@ -57,7 +57,7 @@ const PaddyInward = () => {
   const handleDeleteInward = async (id) => {
     setDeletingId(id);
     try {
-      await axios.delete(`http://localhost:5000/api/paddy/${id}`);
+      await axios.delete(`${API_BASE_URL}/api/paddy/${id}`);
       toast.success('Paddy inward deleted');
       fetchRecentInward();
     } catch (error) {

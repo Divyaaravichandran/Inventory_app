@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -92,7 +92,7 @@ const RiceSales = () => {
 
   const fetchPaddyBatches = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/paddy');
+      const response = await axios.get(`${API_BASE_URL}/api/paddy`);
       setPaddyBatches(response.data || []);
     } catch (error) {
       console.error('Failed to load paddy batches:', error);
