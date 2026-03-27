@@ -7,27 +7,33 @@ dotenv.config();
 
 const app = express();
 
-// Middleware
+// ✅ CORS CONFIG (FIXED & SIMPLIFIED)
 const allowedOrigins = [
   'http://localhost:3000',
-  'http://127.0.0.1:3000',
-  'http://localhost:5173',
-  'http://127.0.0.1:5173',
+  'https://incandescent-gaufre-a25e28.netlify.app'
 ];
 
-app.use(
-  cors({
-    origin(origin, callback) {
-      // Allow non-browser requests (curl/postman) and configured origins
-      if (!origin || allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      return callback(new Error('Not allowed by CORS'));
-    },
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: function (origin, callback) {
+    console.log("Incoming origin:", origin); // Debug log
+
+    // Allow requests with no origin (Postman, mobile apps)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true
+}));
+
+// ✅ Handle preflight requests (VERY IMPORTANT)
+app.options('*', cors());
+
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -66,13 +72,12 @@ mongoose.connect(MONGODB_URI, {
 })
 .catch(err => {
   console.error('❌ MongoDB connection error:', err.message);
-  console.error('💡 Please check your MONGODB_URI in .env file');
   process.exit(1);
 });
 
 // Handle connection events
 mongoose.connection.on('disconnected', () => {
-  console.log('⚠️  MongoDB disconnected');
+  console.log('⚠️ MongoDB disconnected');
 });
 
 mongoose.connection.on('error', (err) => {
@@ -82,5 +87,5 @@ mongoose.connection.on('error', (err) => {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
