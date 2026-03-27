@@ -1,4 +1,5 @@
-﻿import React, { useEffect, useState } from 'react';
+﻿// eslint-disable-next-line unicode-bom
+import React, { useEffect, useState } from 'react';
 import DealerLayout from '../components/DealerLayout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -364,4 +365,5 @@ const DealerOrders = () => {
 };
 
 export default DealerOrders;
+
 

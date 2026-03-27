@@ -1,4 +1,5 @@
-﻿import React, { useState } from 'react';
+﻿// eslint-disable-next-line unicode-bom
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUserAuth } from '../context/UserAuthContext';
 import { FiMail, FiLock, FiUser, FiPhone, FiMapPin, FiArrowLeft } from 'react-icons/fi';
@@ -182,3 +183,4 @@ const UserSignup = () => {
 };
 
 export default UserSignup;
+

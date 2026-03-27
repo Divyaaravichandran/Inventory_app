@@ -1,4 +1,5 @@
-﻿import React, { useEffect, useState } from 'react';
+﻿// eslint-disable-next-line unicode-bom
+import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -392,4 +393,5 @@ const AdminRecentOrders = () => {
 };
 
 export default AdminRecentOrders;
+
 

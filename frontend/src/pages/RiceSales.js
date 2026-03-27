@@ -1,4 +1,5 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿// eslint-disable-next-line unicode-bom
+import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -688,3 +689,4 @@ const RiceSales = () => {
 };
 
 export default RiceSales;
+

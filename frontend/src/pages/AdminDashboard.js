@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Layout from '../components/Layout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -43,7 +43,7 @@ const AdminDashboard = () => {
     fetchRecentSales();
     fetchDealerSummary();
     fetchOrdersSummary();
-  }, [period]);
+  }, [period, fetchChartData]);
 
   const fetchDashboardData = async () => {
     try {
@@ -56,14 +56,14 @@ const AdminDashboard = () => {
     }
   };
 
-  const fetchChartData = async () => {
+  const fetchChartData = useCallback(async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/api/reports/charts?period=${period}`);
       setChartData(response.data);
     } catch (error) {
       console.error('Failed to load chart data:', error);
     }
-  };
+  }, [period]);
 
   const fetchAlerts = async () => {
     try {
