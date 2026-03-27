@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { FiBox, FiPlus, FiTrash2 } from 'react-icons/fi';
+import { FiBox, FiPlus } from 'react-icons/fi';
 import { API_BASE_URL } from '../config/api';
 
 const RiceStock = () => {

@@ -19,6 +19,7 @@ const UserCheckout = () => {
     notes: ''
   });
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     loadCart();
   }, []);
@@ -66,7 +67,7 @@ const UserCheckout = () => {
         notes: formData.notes
       };
 
-      const response = await axios.post(`${API_BASE_URL}/api/user/order`, orderData);
+      await axios.post(`${API_BASE_URL}/api/user/order`, orderData);
       
       // Clear cart
       localStorage.removeItem('userCart');
