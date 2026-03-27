@@ -85,7 +85,7 @@ const AdminDashboard = () => {
 
   const fetchRecentSales = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/sales/recent?limit=5');
+      const response = await axios.get('https://inventoryapp-7kj0.onrender.com/api/sales/recent?limit=5');
       setRecentSales(response.data);
     } catch (error) {
       console.error('Failed to load recent sales:', error);

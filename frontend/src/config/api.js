@@ -1,1 +1,1 @@
-export const API_BASE_URL = 'http://localhost:5000';
+export const API_BASE_URL = 'https://inventoryapp-7kj0.onrender.com';

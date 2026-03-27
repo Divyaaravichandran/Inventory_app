@@ -124,7 +124,7 @@ const DealerOrders = () => {
   const handleDeleteOrder = async (orderId) => {
     setDeletingId(orderId);
     try {
-      await axios.delete(`http://localhost:5000/api/dealer-orders/dealer/${orderId}`);
+      await axios.delete(`https://inventoryapp-7kj0.onrender.com/api/dealer-orders/dealer/${orderId}`);
       toast.success('Order deleted');
       fetchOrders();
     } catch (error) {

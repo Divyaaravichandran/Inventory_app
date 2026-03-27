@@ -92,7 +92,7 @@ const RiceSales = () => {
 
   const fetchPaddyBatches = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/paddy');
+      const response = await axios.get('https://inventoryapp-7kj0.onrender.com/api/paddy');
       setPaddyBatches(response.data || []);
     } catch (error) {
       console.error('Failed to load paddy batches:', error);

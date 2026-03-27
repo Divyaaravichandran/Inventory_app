@@ -140,7 +140,7 @@ const AdminDealers = () => {
     if (!window.confirm(`Are you sure you want to permanently delete dealer ${dealer.dealerName}?`)) return;
     try {
       await axios.delete(
-        `http://localhost:5000/api/dealers/${dealer._id}`
+        `https://inventoryapp-7kj0.onrender.com/api/dealers/${dealer._id}`
       );
       toast.success('Dealer permanently deleted');
       fetchDealers();
