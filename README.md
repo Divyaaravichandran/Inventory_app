@@ -240,7 +240,3 @@ NODE_ENV=development
 
 This project is proprietary software for Kongu Hi-Tech Rice Industries.
 
-## Support
-
-For MongoDB Atlas setup, see `MONGODB_ATLAS_SETUP.md`
-For quick start guide, see `QUICK_START.md`
