@@ -43,8 +43,6 @@ InventoryApp/
 └── MONGODB_ATLAS_SETUP.md
 ```
 
-## Installation & Setup
-
 ### Prerequisites
 
 - Node.js (v14 or higher)
