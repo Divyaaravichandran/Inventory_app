@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Layout from '../components/Layout';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -35,6 +35,7 @@ const AdminDashboard = () => {
   const [showAllPaddyStock, setShowAllPaddyStock] = useState(false);
   const [showAllRecentSales, setShowAllRecentSales] = useState(false);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchDashboardData();
     fetchChartData();
@@ -56,14 +57,14 @@ const AdminDashboard = () => {
     }
   };
 
-  const fetchChartData = async () => {
+  const fetchChartData = useCallback(async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/api/reports/charts?period=${period}`);
       setChartData(response.data);
     } catch (error) {
       console.error('Failed to load chart data:', error);
     }
-  };
+  }, [period]);
 
   const fetchAlerts = async () => {
     try {
@@ -85,7 +86,11 @@ const AdminDashboard = () => {
 
   const fetchRecentSales = async () => {
     try {
+<<<<<<< HEAD
       const response = await axios.get(`${API_BASE_URL}/api/sales/recent?limit=5`);
+=======
+      const response = await axios.get('https://inventoryapp-7kj0.onrender.com/api/sales/recent?limit=5');
+>>>>>>> 9eb8d57523f0d370b10ba7ab17c44fa947f77164
       setRecentSales(response.data);
     } catch (error) {
       console.error('Failed to load recent sales:', error);

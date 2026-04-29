@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+﻿// eslint-disable-next-line unicode-bom
+>>>>>>> 9eb8d57523f0d370b10ba7ab17c44fa947f77164
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import axios from 'axios';
@@ -44,7 +48,11 @@ const PaddyInward = () => {
 
   const fetchRecentInward = async () => {
     try {
+<<<<<<< HEAD
       const response = await axios.get(`${API_BASE_URL}/api/paddy`);
+=======
+      const response = await axios.get('https://inventoryapp-7kj0.onrender.com/api/paddy');
+>>>>>>> 9eb8d57523f0d370b10ba7ab17c44fa947f77164
       const sorted = (response.data || []).sort(
         (a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date)
       );
@@ -57,7 +65,11 @@ const PaddyInward = () => {
   const handleDeleteInward = async (id) => {
     setDeletingId(id);
     try {
+<<<<<<< HEAD
       await axios.delete(`${API_BASE_URL}/api/paddy/${id}`);
+=======
+      await axios.delete(`https://inventoryapp-7kj0.onrender.com/api/paddy/${id}`);
+>>>>>>> 9eb8d57523f0d370b10ba7ab17c44fa947f77164
       toast.success('Paddy inward deleted');
       fetchRecentInward();
     } catch (error) {
@@ -472,3 +484,4 @@ const PaddyInward = () => {
 };
 
 export default PaddyInward;
+

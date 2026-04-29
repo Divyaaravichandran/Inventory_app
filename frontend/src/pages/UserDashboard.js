@@ -39,6 +39,7 @@ const UserDashboard = () => {
   const [period, setPeriod] = useState('daily');
   const [chartData, setChartData] = useState([]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (token) {
       fetchDashboardData();

@@ -67,7 +67,11 @@ const AdminRecentOrders = () => {
   const handleDeleteDealerOrder = async (orderId) => {
     setDeletingId(orderId);
     try {
+<<<<<<< HEAD
       await axios.delete(`${API_BASE_URL}/api/dealer-orders/${orderId}`);
+=======
+      await axios.delete(`https://inventoryapp-7kj0.onrender.com/api/dealer-orders/${orderId}`);
+>>>>>>> 9eb8d57523f0d370b10ba7ab17c44fa947f77164
       toast.success('Dealer order deleted');
       fetchDealerOrders();
     } catch (error) {
@@ -81,7 +85,11 @@ const AdminRecentOrders = () => {
   const handleDeleteUserOrder = async (orderId) => {
     setDeletingId(orderId);
     try {
+<<<<<<< HEAD
       await axios.delete(`${API_BASE_URL}/api/user/admin/orders/${orderId}`);
+=======
+      await axios.delete(`https://inventoryapp-7kj0.onrender.com/api/user/admin/orders/${orderId}`);
+>>>>>>> 9eb8d57523f0d370b10ba7ab17c44fa947f77164
       toast.success('Online order deleted');
       fetchUserOrders();
     } catch (error) {
@@ -276,7 +284,7 @@ const AdminRecentOrders = () => {
                         {activeTab === 'online' && (
                           <>
                             <td className="py-2 text-sm text-gray-800 text-right font-semibold">
-                              ₹{order.totalAmount?.toLocaleString() || 0}
+                              ?{order.totalAmount?.toLocaleString() || 0}
                             </td>
                             <td className="py-2 text-sm text-gray-800">
                               <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
@@ -392,4 +400,5 @@ const AdminRecentOrders = () => {
 };
 
 export default AdminRecentOrders;
+
 

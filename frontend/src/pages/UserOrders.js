@@ -77,7 +77,11 @@ const UserOrders = () => {
   const deleteOrder = async (orderId) => {
     setDeletingId(orderId);
     try {
+<<<<<<< HEAD
       await axios.delete(`${API_BASE_URL}/api/user/orders/${orderId}`);
+=======
+      await axios.delete(`https://inventoryapp-7kj0.onrender.com/api/user/orders/${orderId}`);
+>>>>>>> 9eb8d57523f0d370b10ba7ab17c44fa947f77164
       toast.success('Order deleted successfully');
       fetchOrders();
     } catch (error) {

@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+﻿// eslint-disable-next-line unicode-bom
+>>>>>>> 9eb8d57523f0d370b10ba7ab17c44fa947f77164
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import axios from 'axios';
@@ -92,7 +96,11 @@ const RiceSales = () => {
 
   const fetchPaddyBatches = async () => {
     try {
+<<<<<<< HEAD
       const response = await axios.get(`${API_BASE_URL}/api/paddy`);
+=======
+      const response = await axios.get('https://inventoryapp-7kj0.onrender.com/api/paddy');
+>>>>>>> 9eb8d57523f0d370b10ba7ab17c44fa947f77164
       setPaddyBatches(response.data || []);
     } catch (error) {
       console.error('Failed to load paddy batches:', error);
@@ -688,3 +696,4 @@ const RiceSales = () => {
 };
 
 export default RiceSales;
+

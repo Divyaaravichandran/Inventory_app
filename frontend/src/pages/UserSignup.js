@@ -1,4 +1,5 @@
-﻿import React, { useState } from 'react';
+// eslint-disable-next-line unicode-bom
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUserAuth } from '../context/UserAuthContext';
 import { FiMail, FiLock, FiUser, FiPhone, FiMapPin, FiArrowLeft } from 'react-icons/fi';
@@ -66,7 +67,7 @@ const UserSignup = () => {
           <div className="text-center mb-8">
             <div className="inline-block mb-4">
               <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center">
-                <span className="text-3xl">ðŸŒ¾</span>
+                <span className="text-3xl">🌾</span>
               </div>
             </div>
             <h1 className="text-3xl font-bold text-gray-800 mb-2">Customer Sign Up</h1>
@@ -182,3 +183,4 @@ const UserSignup = () => {
 };
 
 export default UserSignup;
+
